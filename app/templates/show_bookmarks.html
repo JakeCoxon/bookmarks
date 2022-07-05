@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-success">
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <h1>All bookmarks</h1>
+
+  {% for bookmark in bookmarks %}
+    <div style="border:1px solid #ccc; padding:2px">
+    <div>{{bookmark.title}}</div>
+    <div>{{bookmark.description}}</div>
+    <a href="{{bookmark.url}}">{{bookmark.url}}</a>
+    </div>
+  {% endfor %}
+
+  <pre>{{query}}</pre>
+
+</div>
+{% endblock %}

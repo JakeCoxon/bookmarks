@@ -1,0 +1,134 @@
+html {
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+.App {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  font-family: sans-serif;
+}
+.sidebar {
+  width: 300px;
+  background: #ddd;
+  height: 100%;
+  padding: 20px;
+}
+.main {
+  flex: 1;
+}
+.page {
+  color: #222;
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  /* background: #eee; */
+}
+
+.block {
+  padding: 2px;
+  line-height: 1.5;
+  margin-bottom: 2px;
+}
+.block-bookmark {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: row;
+  height: 100px;
+  font-size: 14px;
+  padding: 0;
+}
+.block-bookmark--left {
+  flex: 1;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+}
+.block-bookmark--right {
+  width: 200px;
+  background: #eee;
+}
+.block-bookmark--description {
+  flex: 1;
+  height: 0;
+  overflow: hidden;
+}
+.block-bookmark--right img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.block-bookmark--bottom {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.block-bookmark--bottom img {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+}
+.block-bookmark--bottom a {
+  color: #888;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;
+}
+
+.block-selected {
+  background: #ccccee;
+}
+
+.ReactModal__Content {
+  max-width: 600px;
+  margin: 100px auto;
+  height: 500px;
+}
+.editbox {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  border: 0;
+}
