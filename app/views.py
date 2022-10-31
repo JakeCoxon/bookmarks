@@ -5,11 +5,13 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
+import json
 from app import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response
 from app.forms import UserForm
 from app.models import User, Page, Block, Bookmark
 from app import controller
+from datetime import datetime
 
 # from sqlalchemy.orm import select, select_from, join
 # import sqlite3
@@ -48,6 +50,11 @@ def show_page(page_id):
 
     return render_template('show_page.html', page=page, blocks=query.all(), query=query)
 
+def model_to_dict(self):
+    keys = self.__mapper__.columns.keys()
+    attrs = vars(self)
+    return { k : attrs[k] for k in keys if k in attrs}
+    
 @app.route('/page/<page_id>/api')
 def show_page_api(page_id):
     page = db.session.query(Page).filter_by(id=page_id).one()
@@ -58,23 +65,57 @@ def show_page_api(page_id):
         # outerjoin(Page, Page.id == Block.id).
         # outerjoin(Bookmark, Bookmark.id == Block.id)
     )
+    sidebar_pages = (
+        db.session.query(Page)
+        .filter_by(parent_page_id=None)
+        .outerjoin(Page.block)
+        .all()
+    )
 
     blocks = query.all()
 
-    def to_dict(self):
-        keys = self.__mapper__.columns.keys()
-        attrs = vars(self)
-        return { k : attrs[k] for k in keys if k in attrs}
+    pages = [page] 
+    pages += [x.page for x in blocks if x.page]
+    pages += sidebar_pages
 
-    # print(page.block)
-
-    import json
     response = {}
-    response['blocks'] = {x.id: to_dict(x) for x in blocks}
-    response['pages'] = {page.id: to_dict(page) for page in ([page] + [x.page for x in blocks if x.page])}
-    response['bookmarks'] = {x.bookmark.id: to_dict(x.bookmark) for x in blocks if x.bookmark}
+    response['blocks'] = {x.id: model_to_dict(x) for x in blocks}
+    response['pages'] = {page.id: model_to_dict(page) for page in pages}
+    response['bookmarks'] = {x.bookmark.id: model_to_dict(x.bookmark) for x in blocks if x.bookmark}
+    response['galleries'] = {x.gallery.id: model_to_dict(x.gallery) for x in blocks if x.gallery}
+    response['sidebar'] = [page.id for page in sidebar_pages]
+
+
+    return make_response(json.dumps(response, default=default_json))
+
+# @app.route('/sidebar/api')
+# def show_sidebar_api():
+#     pages = (
+#         db.session.query(Page)
+#         .filter_by(parent_page_id=None)
+#         .outerjoin(Page.block)
+#         .all()
+#     )
+
+#     # query = (
+#     #     db.session.query(Block).
+#     #     filter_by(ancestor_page_id=page_id)
+#     #     # outerjoin(Page, Page.id == Block.id).
+#     #     # outerjoin(Bookmark, Bookmark.id == Block.id)
+#     # )
+
     
-    return make_response(json.dumps(response))
+#     response = {}
+#     # response['blocks'] = {x.id: model_to_dict(x) for x in blocks}
+#     response['pages'] = {page.id: model_to_dict(page) for page in pages}
+#     response['sidebar'] = [page.id for page in pages]
+    
+#     return make_response(json.dumps(response, default=default_json))
+
+def default_json(obj):
+    if isinstance(obj, datetime):
+        return int(datetime.timestamp(obj) * 1000)
+    raise TypeError(f'Object of type {obj.__cls__.__name__} is not JSON serializable')
 
 @app.route('/bookmarks')
 def show_bookmarks():
@@ -99,11 +140,9 @@ def add_user():
 
     if request.method == 'POST':
         if user_form.validate_on_submit():
-            # Get validated data from form
-            name = user_form.name.data # You could also have used request.form['name']
-            email = user_form.email.data # You could also have used request.form['email']
+            name = user_form.name.data
+            email = user_form.email.data
 
-            # save user to database
             user = User(name, email)
             db.session.add(user)
             db.session.commit()

@@ -31,7 +31,13 @@ def fetch_metadata(urls):
     stream = os.popen(f'node fetch/fetch.js {urls_string}')
     output = stream.read()
     # print(output)
-    return json.loads(output)
+    try:
+        return json.loads(output)
+    except Exception as e:
+        print(e)
+        print(output)
+        raise e
+
 
 def chunks(xs, n):
     n = max(1, n)
@@ -53,9 +59,8 @@ def scrape():
                     raise Error("Could not parse URL")
 
                 if url in all_urls:
-                    continue
-
-                if 'instagram.com' in url:
+                    obj = all_urls[url]
+                    obj.created_at = data.created_at
                     continue
 
                 to_scape_urls.append({ 'data': data, 'url': url })
@@ -65,6 +70,7 @@ def scrape():
                 print("Contents", data.contents)
                 print(e)
 
+    db.session.commit()
     # print(to_scape_urls)
 
     for chunk in chunks(to_scape_urls, 10):
@@ -76,6 +82,7 @@ def scrape():
 
             url = chunk[i]['url']
             caption = chunk[i]['data'].contents
+            created_at = chunk[i]['data'].created_at
 
             if 'error' in metadata:
                 print(caption)
@@ -87,8 +94,27 @@ def scrape():
             print(metadata)
             print("")
 
-            url_obj = Url(url=url, meta=json.dumps(metadata), caption=caption)
+            url_obj = Url(url=url, meta=json.dumps(metadata), caption=caption,
+                created_at=created_at)
             db.session.add(url_obj)
 
         db.session.commit()
+
         
+def add_column(table, column_key):
+    column = getattr(table, column_key)
+    engine = db.get_engine(bind=table.__bind_key__)
+
+    table_name = table.__table__.name
+    column_name = column.compile(dialect=engine.dialect)
+    column_type = column.type.compile(engine.dialect)
+    query = 'ALTER TABLE %s ADD COLUMN %s %s' % (table_name, column_key, column_type)
+    print(query)
+    engine.execute(query)
+
+def migrate():
+
+    # column = Column('new_column_name', String(100), primary_key=True)
+    # add_column(db.engine, table_name, column)
+    # add_column(Url, 'created_at')
+    pass

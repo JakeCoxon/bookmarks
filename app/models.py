@@ -24,6 +24,8 @@ class Url(db.Model):
     meta = db.Column(db.Text())
     caption = db.Column(db.Text())
 
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
     def __repr__(self):
         return '<BasicData %r>' % self.id
 
@@ -75,6 +77,15 @@ class Block(db.Model):
         uselist=False
     )
 
+    gallery = db.relationship(
+        "Gallery",
+        primaryjoin=(
+            "foreign(Gallery.id)==Block.reference_id"
+        ),
+        backref="block",
+        uselist=False
+    )
+
     def set_reference(self, reference):
         self.reference_id = reference.id
         reference.block = self
@@ -82,6 +93,8 @@ class Block(db.Model):
             self.page = reference
         elif isinstance(reference, Bookmark):
             self.bookmark = reference
+        elif isinstance(reference, Gallery):
+            self.gallery = reference
 
     ancestor_page_id = db.Column(db.String(255), db.ForeignKey("pages.id"))
 
@@ -91,6 +104,9 @@ class Block(db.Model):
     parent_block_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
     block_children = db.relationship("Block", foreign_keys=[parent_block_id])
     parent_block = db.relationship("Block", foreign_keys=[parent_block_id], remote_side=[id], back_populates="block_children")
+
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     @property
     def block(self):
@@ -110,6 +126,7 @@ class Page(db.Model):
     page_children = db.relationship("Page")
     parent_page = db.relationship("Page", remote_side=[id], back_populates="page_children")
 
+    locked = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return '<Page %r parent=%r>' % (self.id, self.parent_page_id)
@@ -124,7 +141,12 @@ class Bookmark(db.Model):
     logo = db.Column(db.Text())
     caption = db.Column(db.Text())
 
-    # bookmark_refs = db.relationship("BookmarkRef", back_populates="bookmark")
-
     def __repr__(self):
         return '<Bookmark %r url=%r>' % (self.id, self.url)
+
+class Gallery(db.Model):
+    __tablename__ = 'galleries'
+    id = db.Column(db.String(255), primary_key=True, default=default_id('gl_'))
+    
+    def __repr__(self):
+        return '<Gallery %r>' % (self.id, self.url)

@@ -15,90 +15,6 @@ import {
 } from "react-router-dom";
 import ReactModal from "react-modal";
 
-const fakeData = () => ({
-  blocks: {
-    bl_3: {
-      id: "bl_3",
-      contents: "",
-      reference_id: "pg_2",
-      ancestor_page_id: "pg_1",
-      first_child_id: null,
-      next_sibling_id: "bl_5",
-      parent_block_id: null,
-    },
-    bl_5: {
-      id: "bl_5",
-      contents: "",
-      reference_id: "pg_4",
-      ancestor_page_id: "pg_1",
-      first_child_id: null,
-      next_sibling_id: "bl_7",
-      parent_block_id: null,
-    },
-    bl_7: {
-      id: "bl_7",
-      contents: "",
-      reference_id: "pg_6",
-      ancestor_page_id: "pg_1",
-      first_child_id: null,
-      next_sibling_id: "bl_8",
-      parent_block_id: null,
-    },
-    bl_8: {
-      id: "bl_8",
-      contents: "Cool",
-      reference_id: null,
-      ancestor_page_id: "pg_1",
-      first_child_id: null,
-      next_sibling_id: "bl_9",
-      parent_block_id: null,
-    },
-    bl_9: {
-      id: "bl_9",
-      contents: "Cool",
-      reference_id: "bk_1",
-      ancestor_page_id: "pg_1",
-      first_child_id: null,
-      next_sibling_id: null,
-      parent_block_id: null,
-    },
-  },
-  pages: {
-    pg_1: {
-      id: "pg_1",
-      title: "Home page",
-      first_child_id: "bl_3",
-      parent_page_id: null,
-    },
-    pg_2: {
-      id: "pg_2",
-      title: "Sub page 1",
-      first_child_id: null,
-      parent_page_id: null,
-    },
-    pg_4: {
-      id: "pg_4",
-      title: "Sub page 2",
-      first_child_id: null,
-      parent_page_id: null,
-    },
-    pg_6: {
-      id: "pg_6",
-      title: "Sub page 3",
-      first_child_id: null,
-      parent_page_id: null,
-    },
-  },
-  bookmarks: {
-    bk_1: {
-      id: "bk_1",
-      url: "http://cool.com",
-      title: "cool bookmark",
-      description: "here",
-    },
-  },
-});
-
 ReactModal.setAppElement(document.querySelector("#root"));
 
 const store = createStore({
@@ -150,7 +66,7 @@ function AppContents() {
   return (
     <>
       <div className="App">
-        <div className="sidebar">sidebar</div>
+        <Sidebar />
         <div
           className="main"
           onKeyDownCapture={(ev) => {
@@ -173,9 +89,26 @@ function AppContents() {
     </>
   );
 }
+const Sidebar = () => {
+  const sidebarIds = store.useValue((x) => x.data?.sidebar);
+  const pages = store.useValue((x) => x.data?.pages);
+
+  return (
+    <div className="sidebar">
+      {(sidebarIds || []).map((id) => (
+        <div>
+          <Link to={`/${pages[id].id}`}>{pages[id].title}</Link>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const EditModal = ({}) => {
   const { pageId, blockId } = useParams();
+  const [block, setBlock] = useState(() => {
+    return store.state.data?.blocks[blockId];
+  });
   const [text, setText] = useState(() => {
     return store.state.data?.blocks[blockId].contents;
   });
@@ -197,6 +130,11 @@ const EditModal = ({}) => {
     },
   };
 
+  const bookmark =
+    store.state?.data && block?.reference_id?.startsWith("bk_")
+      ? store.state.data.bookmarks[block.reference_id]
+      : null;
+
   return (
     <ReactModal
       isOpen={true}
@@ -204,12 +142,24 @@ const EditModal = ({}) => {
         navigate(-1);
       }}
     >
-      <textarea
-        className="editbox"
-        value={text}
-        {...events}
-        autoFocus={true}
-      ></textarea>
+      {bookmark ? (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <input type="text" value={bookmark.url} />
+          <input type="text" value={bookmark.title} />
+          <input type="text" value={bookmark.image} />
+          <input type="text" value={bookmark.logo} />
+          <textarea className="editbox" value={bookmark.description}></textarea>
+          <textarea className="editbox" value={bookmark.caption}></textarea>
+          {/* <pre>{JSON.stringify(bookmark, null, 2)}</pre> */}
+        </div>
+      ) : (
+        <textarea
+          className="editbox"
+          value={text}
+          {...events}
+          autoFocus={true}
+        ></textarea>
+      )}
     </ReactModal>
   );
 };
@@ -227,6 +177,23 @@ const Page = ({}) => {
   );
 };
 
+const actions = {
+  openEdit: (navigate, location) => {
+    const data = store.state.data;
+    const id = store.state.selectedIds[0];
+    if (!id) return false;
+    if (data.blocks[id].reference_id?.startsWith("pg_")) {
+      navigate(`/${data.blocks[id].reference_id}`);
+    } else {
+      navigate(`/edit/${store.state.pageId}/${id}`, {
+        state: {
+          backgroundLocation: location,
+        },
+      });
+      return true;
+    }
+  },
+};
 const RenderPage = ({ pageId }) => {
   const page = store.useValue((x) => x.data.pages[pageId]);
 
@@ -316,18 +283,10 @@ const RenderPage = ({ pageId }) => {
       ev.stopPropagation();
       ev.preventDefault();
     } else if (ev.key == "Enter") {
-      const id = store.state.selectedIds[0];
-      if (data.blocks[id].reference_id?.startsWith("pg_")) {
-        navigate(`/${data.blocks[id].reference_id}`);
-      } else {
-        navigate(`/edit/${pageId}/${id}`, {
-          state: {
-            backgroundLocation: location,
-          },
-        });
+      if (actions.openEdit(navigate, location)) {
+        ev.stopPropagation();
+        ev.preventDefault();
       }
-      ev.stopPropagation();
-      ev.preventDefault();
     } else if (ev.key == "ArrowUp") {
       const id = store.state.selectedIds[0];
       if (!id) return;
@@ -336,18 +295,30 @@ const RenderPage = ({ pageId }) => {
       if (prevId) {
         store.update({ selectedIds: [prevId] });
       }
+      ev.stopPropagation();
+      ev.preventDefault();
     } else if (ev.key == "ArrowDown") {
       const id = store.state.selectedIds[0];
       const nextId = id ? data.blocks[id].next_sibling_id : page.first_child_id;
       if (nextId) {
         store.update({ selectedIds: [nextId] });
       }
+      ev.stopPropagation();
+      ev.preventDefault();
     }
     // console.log(ev.key);
   });
+  const doubleClickEvent = useEvent((ev) => {
+    if (actions.openEdit(navigate, location)) {
+      ev.stopPropagation();
+    }
+  });
 
   useEffect(() => {
-    if (page) divRef.current?.focus();
+    if (page)
+      divRef.current?.focus({
+        preventScroll: true,
+      });
   }, [page]);
 
   const divRef = useRef();
@@ -359,8 +330,17 @@ const RenderPage = ({ pageId }) => {
       tabIndex={0}
       style={{ padding: 10 }}
       autoFocus={true}
-      onFocusCapture={(ev) => divRef.current.focus()}
-      onClickCapture={(ev) => divRef.current.focus()}
+      onFocusCapture={(ev) =>
+        divRef.current.focus({
+          preventScroll: true,
+        })
+      }
+      onClickCapture={(ev) =>
+        divRef.current.focus({
+          preventScroll: true,
+        })
+      }
+      onDoubleClick={doubleClickEvent}
       ref={divRef}
     >
       <div>
@@ -386,27 +366,32 @@ const RenderPage = ({ pageId }) => {
   );
 };
 
-const BlockContainer = React.memo(({ block, indent }) => {
+const BlockContainer = React.memo(({ block, indent, ...props }) => {
   return (
     <div style={{ marginLeft: indent * 50 }}>
       {block.reference_id && block.reference_id.startsWith("pg_") ? (
-        <PageLink id={block.id} />
+        <PageLink id={block.id} {...props} />
       ) : block.reference_id && block.reference_id.startsWith("bk_") ? (
-        <Bookmark id={block.id} />
+        <Bookmark id={block.id} {...props} />
+      ) : block.reference_id && block.reference_id.startsWith("gl_") ? (
+        <Gallery id={block.id} {...props} />
       ) : (
-        <Text id={block.id} />
+        <Text id={block.id} {...props} />
       )}
     </div>
   );
 });
 
-const Block = ({ children, id, type }) => {
+const Block = ({ children, id, type, className }) => {
   const selected = store.useValue((x) => x.selectedIds.includes(id));
   const events = {
     onMouseDown: (ev) => {
       store.update((draft) => {
-        if (ev.shiftKey) {
-          draft.selectedIds.push(id);
+        if (ev.metaKey) {
+          const index = draft.selectedIds.indexOf(id);
+          index > -1
+            ? draft.selectedIds.splice(index, 1)
+            : draft.selectedIds.push(id);
         } else {
           draft.selectedIds = [id];
         }
@@ -417,7 +402,9 @@ const Block = ({ children, id, type }) => {
   };
   return (
     <div
-      className={`block block-${type} ${selected ? "block-selected" : ""}`}
+      className={`block block-${type} ${selected ? "block-selected" : ""} ${
+        className ?? ""
+      }`}
       {...events}
     >
       {children}
@@ -425,27 +412,33 @@ const Block = ({ children, id, type }) => {
   );
 };
 
-const Bookmark = React.memo(({ id }) => {
+const Bookmark = React.memo(({ id, small }) => {
   const block = store.useValue((x) => x.data.blocks[id]);
   const bookmark = store.useValue((x) => x.data.bookmarks[block.reference_id]);
 
+  const type = small ? "small" : "regular";
+
   return (
-    <Block id={id} type="bookmark">
-      <div className="block-bookmark--left">
-        <div className="block-bookmark--title">
+    <Block id={id} type="bookmark" className={`block-bookmark--${type}`}>
+      <div className={`block-bookmark-main block-bookmark-main--${type}`}>
+        <div className={`block-bookmark-title block-bookmark-title--${type}`}>
           <strong>{bookmark.title}</strong>
         </div>
-        <div className="block-bookmark--description">
+        <div
+          className={`block-bookmark-description block-bookmark-description--${type}`}
+        >
           {bookmark.description}
         </div>
-        <div className="block-bookmark--bottom">
+        <div className={`block-bookmark-bottom block-bookmark-bottom--${type}`}>
           {bookmark.logo ? <img src={bookmark.logo} /> : null}
           <a href={bookmark.url}>{bookmark.url}</a>
         </div>
       </div>
 
       {bookmark.image ? (
-        <div className="block-bookmark--right">
+        <div
+          className={`block-bookmark-preview block-bookmark-preview--${type}`}
+        >
           <img src={bookmark.image} />
         </div>
       ) : null}
@@ -473,3 +466,95 @@ const PageLink = React.memo(({ id }) => {
     </Block>
   );
 });
+
+const Gallery = React.memo(({ id }) => {
+  const block = store.useValue((x) => x.data.blocks[id]);
+  const gallery = store.useValue((x) => x.data.galleries[block.reference_id]);
+
+  const blocks = store.useValue((x) => x.data.blocks);
+  const groupedChildren = useMemo(() => {
+    const children = Object.values(blocks).filter(
+      (x) => x.parent_block_id == id
+    );
+    children.sort((a, b) => b.created_at - a.created_at);
+    const grouped = groupByDate(children);
+
+    return [
+      grouped["day"] ? ["Today", grouped["day"]] : null,
+      grouped["week"] ? ["This week", grouped["week"]] : null,
+      grouped["month"] ? ["This month", grouped["month"]] : null,
+      grouped["3month"] ? ["A few months ago", grouped["3month"]] : null,
+      grouped["year"] ? ["This year", grouped["year"]] : null,
+      grouped["other"] ? ["older than a year", grouped["other"]] : null,
+    ].filter(Boolean);
+  }, [blocks]);
+
+  const [type, setType] = useState("grid");
+
+  return (
+    <Block id={id} type="gallery">
+      <div>
+        <button
+          onMouseDown={(ev) => ev.stopPropagation()}
+          onClick={(ev) => {
+            setType("grid");
+            ev.stopPropagation();
+          }}
+        >
+          Grid
+        </button>
+        <button
+          onMouseDown={(ev) => ev.stopPropagation()}
+          onClick={(ev) => {
+            setType("rows");
+            ev.stopPropagation();
+          }}
+        >
+          Rows
+        </button>
+      </div>
+      <div className={`gallery-container--${type}`}>
+        {groupedChildren.map(([label, children]) => {
+          return (
+            <>
+              <div className="gallery-label">{label}</div>
+              {children.map((block) => {
+                return (
+                  <div className={`gallery-cell--${type}`}>
+                    <BlockContainer
+                      block={block}
+                      indent={0}
+                      small={type == "grid"}
+                    />
+                  </div>
+                );
+              })}
+            </>
+          );
+        })}
+      </div>
+    </Block>
+  );
+});
+
+const groupByDate = (blocks) => {
+  const now = Date.now();
+
+  return groupBy(blocks, (block) => {
+    const diff = now - block.created_at;
+    if (diff < 1000 * 60 * 60 * 24) return "day";
+    if (diff < 1000 * 60 * 60 * 24 * 7) return "week";
+    if (diff < 1000 * 60 * 60 * 24 * 30) return "month";
+    if (diff < 1000 * 60 * 60 * 24 * 30 * 3) return "3month";
+    if (diff < 1000 * 60 * 60 * 24 * 365) return "year";
+    return "other";
+  });
+};
+
+const groupBy = (array, f) => {
+  return array.reduce((result, currentValue) => {
+    const key = f(currentValue);
+    (result[key] = result[key] || []).push(currentValue);
+    return result;
+  }, {});
+};

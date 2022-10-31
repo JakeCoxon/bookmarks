@@ -18,18 +18,17 @@ Start the development server
 $ python run.py
 ```
 
+## Init DB
 
-Browse to http://0.0.0.0:8080
+```rm mydatabase.db; echo "from app.controller import init_db; init_db()" | python3 -```
 
-You can then add new users by browsing to http://0.0.0.0:8080/add-user and view
-a list of users by browsing to http://0.0.0.0:8080/users
+## Start frontend
 
-To reset the users table, run the following SQL query:
 ```
-DROP TABLE IF EXISTS users;
-CREATE TABLE users (
-  id integer primary key autoincrement,
-  name string not null,
-  email string not null
-);
+cd notesapp
+yarn
+```
+
+```
+yarn start
 ```
