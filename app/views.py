@@ -9,7 +9,7 @@ import json
 from app import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response
 from app.forms import UserForm
-from app.models import User, Page, Block, Bookmark
+from app.models import User, Collection, Block, Bookmark
 from app import controller
 from datetime import datetime
 
@@ -22,13 +22,12 @@ from datetime import datetime
 
 @app.route('/')
 def home():
-    return show_page("pg_1")
+    return show_collection("cl_home")
 
 
 
 @app.route('/about/')
 def about():
-    """Render the website's about page."""
     return render_template('about.html', name="Mary Jane")
 
 @app.route('/users')
@@ -37,56 +36,88 @@ def show_users():
 
     return render_template('show_users.html', users=users)
 
-@app.route('/page/<page_id>')
-def show_page(page_id):
-    page = db.session.query(Page).get(page_id)
+@app.route('/collection/<collection_id>')
+def show_collection(collection_id):
+    collection = db.session.query(Collection).get(collection_id)
 
     query = (
         db.session.query(Block).
-        filter_by(ancestor_page_id=page_id).
-        outerjoin(Page, Page.id == Block.id).
-        outerjoin(Bookmark, Bookmark.id == Block.id)
+        filter_by(ancestor_collection_id=collection_id).
+        outerjoin(Collection, Collection.id == Block.id).
+        outerjoin(Bookmark, Bookmark.id == Block.id).
+        order_by(Block.created_at.desc())
     )
 
-    return render_template('show_page.html', page=page, blocks=query.all(), query=query)
+    blocks = query.all()
+
+
+    groups = [(group, group_to_label(group), list(blocks)) 
+        for group, blocks in group_by_date(query)]
+    print(groups)
+
+    return render_template('show_collection.html', 
+        collection=collection, blocks=blocks, groups=groups, query=query)
+
+def group_to_label(group):
+    return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]
+
+def group_by_date(blocks):
+    now = datetime.now()
+    from itertools import groupby
+
+    day = 60 * 60 * 24
+    def groupfunc(block):
+        diff = (now - block.created_at).total_seconds()
+        print(diff)
+
+        if diff < day: return "day"
+        elif diff < day * 7: return "week"
+        elif diff < day * 30: return "month"
+        elif diff < day * 30 * 3: return "3month"
+        elif diff < day * 365: return "year"
+
+        return "other"
+
+    return groupby(blocks, key=groupfunc)
+
 
 def model_to_dict(self):
     keys = self.__mapper__.columns.keys()
     attrs = vars(self)
     return { k : attrs[k] for k in keys if k in attrs}
     
-@app.route('/page/<page_id>/api')
-def show_page_api(page_id):
-    page = db.session.query(Page).filter_by(id=page_id).one()
+# @app.route('/collection/<collection_id>/api')
+# def show_page_api(collection_id):
+#     page = db.session.query(Page).filter_by(id=collection_id).one()
 
-    query = (
-        db.session.query(Block).
-        filter_by(ancestor_page_id=page_id)
-        # outerjoin(Page, Page.id == Block.id).
-        # outerjoin(Bookmark, Bookmark.id == Block.id)
-    )
-    sidebar_pages = (
-        db.session.query(Page)
-        .filter_by(parent_page_id=None)
-        .outerjoin(Page.block)
-        .all()
-    )
+#     query = (
+#         db.session.query(Block).
+#         filter_by(ancestor_collection_id=collection_id)
+#         # outerjoin(Page, Page.id == Block.id).
+#         # outerjoin(Bookmark, Bookmark.id == Block.id)
+#     )
+#     sidebar_pages = (
+#         db.session.query(Page)
+#         .filter_by(parent_collection_id=None)
+#         .outerjoin(Page.block)
+#         .all()
+#     )
 
-    blocks = query.all()
+#     blocks = query.all()
 
-    pages = [page] 
-    pages += [x.page for x in blocks if x.page]
-    pages += sidebar_pages
+#     pages = [page] 
+#     pages += [x.page for x in blocks if x.page]
+#     pages += sidebar_pages
 
-    response = {}
-    response['blocks'] = {x.id: model_to_dict(x) for x in blocks}
-    response['pages'] = {page.id: model_to_dict(page) for page in pages}
-    response['bookmarks'] = {x.bookmark.id: model_to_dict(x.bookmark) for x in blocks if x.bookmark}
-    response['galleries'] = {x.gallery.id: model_to_dict(x.gallery) for x in blocks if x.gallery}
-    response['sidebar'] = [page.id for page in sidebar_pages]
+#     response = {}
+#     response['blocks'] = {x.id: model_to_dict(x) for x in blocks}
+#     response['pages'] = {page.id: model_to_dict(page) for page in pages}
+#     response['bookmarks'] = {x.bookmark.id: model_to_dict(x.bookmark) for x in blocks if x.bookmark}
+#     response['galleries'] = {x.gallery.id: model_to_dict(x.gallery) for x in blocks if x.gallery}
+#     response['sidebar'] = [page.id for page in sidebar_pages]
 
 
-    return make_response(json.dumps(response, default=default_json))
+#     return make_response(json.dumps(response, default=default_json))
 
 # @app.route('/sidebar/api')
 # def show_sidebar_api():

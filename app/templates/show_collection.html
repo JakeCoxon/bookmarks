@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="container">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-success">
+        <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="px-10 py-6 bg-blue-800">
+    <div class="text-sm">{{ collection.title }}</div>
+  </div>
+
+  <div class="p-10">
+    <p>{{ collection.contents }}</p>
+
+    <div class="h-12"></div>
+
+    {% for group, label, blocks in groups %}
+
+      <h2 class="text-sm">
+        {{label}}
+      </h2>
+
+      <div class="grid">
+      {% for block in blocks %}
+        {% if block.collection %}
+          <div>
+            <a href="/collection/{{ block.id }}">{{ block.collection.title }}</a>
+          </div>
+        {% elif block.bookmark %}
+          <div class="myblock-bookmark">
+            <div class="myblock-bookmark-preview gradient2"></div>
+            <div class="myblock-bookmark-main">
+              <div class="myblock-bookmark-main-title">{{block.bookmark.title}}</div>
+              <div class="myblock-bookmark-main-desc">{{block.bookmark.description}}</div>
+              <div class="myblock-bookmark-main-url">
+                <a class="myblock-bookmark-main-url-a" href="{{block.bookmark.url}}">{{block.bookmark.url}}</a>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="myblock-bookmark">
+            <div class="myblock-bookmark-preview gradient1"></div>
+            <div class="myblock-bookmark-main">
+              <div>{{block.contents}}</div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+      </div>
+
+    {% endfor %}
+  </div>
+
+  <code>{{query}}</code>
+
+</div>
+{% endblock %}

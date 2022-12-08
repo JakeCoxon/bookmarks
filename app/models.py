@@ -35,6 +35,8 @@ class User(db.Model):
     name = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=True)
 
+    collections = db.relationship("Collection")
+
     def __repr__(self):
         return '<User %r>' % self.name
 
@@ -59,14 +61,14 @@ class Block(db.Model):
 
     reference_id = db.Column(db.String(255))
 
-    page = db.relationship(
-        "Page",
-        primaryjoin=(
-            "foreign(Page.id)==Block.reference_id"
-        ),
-        backref="block",
-        uselist=False
-    )
+    # collection = db.relationship(
+    #     "Collection",
+    #     primaryjoin=(
+    #         "foreign(Collection.id)==Block.reference_id"
+    #     ),
+    #     backref="block",
+    #     uselist=False
+    # )
 
     bookmark = db.relationship(
         "Bookmark",
@@ -77,33 +79,33 @@ class Block(db.Model):
         uselist=False
     )
 
-    gallery = db.relationship(
-        "Gallery",
-        primaryjoin=(
-            "foreign(Gallery.id)==Block.reference_id"
-        ),
-        backref="block",
-        uselist=False
-    )
+    # gallery = db.relationship(
+    #     "Gallery",
+    #     primaryjoin=(
+    #         "foreign(Gallery.id)==Block.reference_id"
+    #     ),
+    #     backref="block",
+    #     uselist=False
+    # )
 
     def set_reference(self, reference):
         self.reference_id = reference.id
         reference.block = self
-        if isinstance(reference, Page):
-            self.page = reference
-        elif isinstance(reference, Bookmark):
+        # if isinstance(reference, Page):
+        #     self.page = reference
+        if isinstance(reference, Bookmark):
             self.bookmark = reference
-        elif isinstance(reference, Gallery):
-            self.gallery = reference
+        # elif isinstance(reference, Gallery):
+        #     self.gallery = reference
 
-    ancestor_page_id = db.Column(db.String(255), db.ForeignKey("pages.id"))
+    ancestor_collection_id = db.Column(db.String(255), db.ForeignKey("collections.id"))
 
-    first_child_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
-    next_sibling_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
+    # first_child_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
+    # next_sibling_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
 
-    parent_block_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
-    block_children = db.relationship("Block", foreign_keys=[parent_block_id])
-    parent_block = db.relationship("Block", foreign_keys=[parent_block_id], remote_side=[id], back_populates="block_children")
+    # parent_block_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
+    # block_children = db.relationship("Block", foreign_keys=[parent_block_id])
+    # parent_block = db.relationship("Block", foreign_keys=[parent_block_id], remote_side=[id], back_populates="block_children")
 
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
@@ -113,23 +115,25 @@ class Block(db.Model):
         return self
 
     def __repr__(self):
-        return '<Block %r reference=%r>' % (self.id, self.reference_id)
+        return '<Block %r reference=%r created_at=%r>' % (self.id, self.reference_id, self.created_at)
 
-class Page(db.Model):
-    __tablename__ = 'pages'
-    id = db.Column(db.String(255), primary_key=True, default=default_id('pg_'))
+class Collection(db.Model):
+    __tablename__ = 'collections'
+    id = db.Column(db.String(255), primary_key=True, default=default_id('cl_'))
     title = db.Column(db.String(1024))
 
-    first_child_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
+    # first_child_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
     
-    parent_page_id = db.Column(db.String(255), db.ForeignKey("pages.id"))
-    page_children = db.relationship("Page")
-    parent_page = db.relationship("Page", remote_side=[id], back_populates="page_children")
+    # parent_page_id = db.Column(db.String(255), db.ForeignKey("pages.id"))
+    # page_children = db.relationship("Page")
+    # parent_page = db.relationship("Page", remote_side=[id], back_populates="page_children")
 
-    locked = db.Column(db.Boolean, default=False)
+    # locked = db.Column(db.Boolean, default=False)
+
+    owner = db.Column(db.String(255), db.ForeignKey("users.id"))
 
     def __repr__(self):
-        return '<Page %r parent=%r>' % (self.id, self.parent_page_id)
+        return '<Collection %r parent=%r>' % (self.id, 0)
 
 class Bookmark(db.Model):
     __tablename__ = 'bookmarks'
@@ -144,9 +148,9 @@ class Bookmark(db.Model):
     def __repr__(self):
         return '<Bookmark %r url=%r>' % (self.id, self.url)
 
-class Gallery(db.Model):
-    __tablename__ = 'galleries'
-    id = db.Column(db.String(255), primary_key=True, default=default_id('gl_'))
+# class Gallery(db.Model):
+#     __tablename__ = 'galleries'
+#     id = db.Column(db.String(255), primary_key=True, default=default_id('gl_'))
     
-    def __repr__(self):
-        return '<Gallery %r>' % (self.id, self.url)
+#     def __repr__(self):
+#         return '<Gallery %r>' % (self.id, self.url)

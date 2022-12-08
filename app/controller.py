@@ -1,88 +1,72 @@
 from app import db
-from app.models import User, Page, Block, Bookmark, Counter, Url, Gallery
+from app.models import User, Collection, Block, Bookmark, Counter, Url
+from datetime import datetime, timedelta
 
-def create_page(title):
-    page = Page(title=title)
+def create_collection(title):
+    collection = Collection(title=title)
 
-    db.session.add(page)
-    return page
+    db.session.add(collection)
+    return collection
 
 
-def create_block(contents, reference=None):
+def create_block(contents, reference=None, collection=None):
     block = Block(contents=contents)
     if reference:
         block.set_reference(reference)
+    if collection:
+        block.ancestor_collection_id = collection.id
 
     db.session.add(block)
     return block
 
-def insert_x_into_page_y(block, into_page):
-    if block.page:
-        block.parent_page_id = into_page.id
-        # original_next_id = into_page.first_child_id
-        # into_page.first_child_id = obj.id
-        # obj.next_sibling_id = original_next_id
+# def create_inbox():
+#     import json
 
-    # block = obj.block
+#     inbox = create_collection("Inbox")
+#     inbox.id = "pg_inbox"
+#     inbox.locked = True
+
+#     gallery = Gallery()
+#     db.session.add(gallery)
+#     db.session.flush()
+
+#     gallery_block = create_block("", reference=gallery)
+
+#     inbox_urls = db.session.query(Url).all()
+#     def create_bookmark_from_url(url):
+#         m = json.loads(url.meta)
+#         bk = Bookmark(url=m['url'], title=m['title'], description=m['description'],
+#             caption=url.caption, logo=m['logo'], image=m['image'])
+#         db.session.add(bk)
+#         return bk
     
-    original_child_id = into_page.first_child_id
-    into_page.first_child_id = block.id
-    block.next_sibling_id = original_child_id
+#     bookmarks = [
+#         create_bookmark_from_url(url)
+#         for url in inbox_urls
+#     ]
+#     db.session.flush()
 
-    block.ancestor_page_id = into_page.id
+#     insert_x_into_page_y(gallery_block, inbox)
 
-def insert_x_after_y(block, after_block):
-    after_block = after_block
+#     def create_block_for_bookmark(idx, bk):
+#         block = create_block("", reference=bk)
+#         block.created_at = inbox_urls[idx].created_at
+#         block.parent_block_id = gallery_block.id
+#         block.ancestor_page_id = inbox.id
+#         return block
+#     blocks = [create_block_for_bookmark(i, bk) for i, bk in enumerate(bookmarks)]
+#     db.session.flush()
+# 
+ #     print("Inbox is ", inbox.id)
 
-    if block.page:
-        block.parent_page_id = after_block.ancestor_page_id
-    
-    block.ancestor_page_id = after_block.ancestor_page_id
+def create_bookmark(*args, collection, **kwargs):
+    bk = Bookmark(*args, **kwargs)
+    bl = create_block("", reference=bk, collection=collection)
+    db.session.add(bk)
+    db.session.add(bl)
+    return bk
 
-    original_next_id = after_block.next_sibling_id
-    after_block.next_sibling_id = block.id
-    block.next_sibling_id = original_next_id
-
-def create_inbox():
-    import json
-
-    inbox = create_page("Inbox")
-    inbox.id = "pg_inbox"
-    inbox.locked = True
-
-    gallery = Gallery()
-    db.session.add(gallery)
-    db.session.flush()
-
-    gallery_block = create_block("", reference=gallery)
-
-    inbox_urls = db.session.query(Url).all()
-    def create_bookmark_from_url(url):
-        m = json.loads(url.meta)
-        bk = Bookmark(url=m['url'], title=m['title'], description=m['description'],
-            caption=url.caption, logo=m['logo'], image=m['image'])
-        db.session.add(bk)
-        return bk
-    
-    bookmarks = [
-        create_bookmark_from_url(url)
-        for url in inbox_urls
-    ]
-    db.session.flush()
-
-    insert_x_into_page_y(gallery_block, inbox)
-
-    def create_block_for_bookmark(idx, bk):
-        block = create_block("", reference=bk)
-        block.created_at = inbox_urls[idx].created_at
-        block.parent_block_id = gallery_block.id
-        block.ancestor_page_id = inbox.id
-        return block
-    blocks = [create_block_for_bookmark(i, bk) for i, bk in enumerate(bookmarks)]
-    db.session.flush()
-
-    print("Inbox is ", inbox.id)
-
+import random
 
 def init_db():
     db.create_all()
@@ -90,42 +74,37 @@ def init_db():
     db.session.add(Counter(counter=0))
     db.session.commit()
 
-    page1 = create_page("Home page")
-    page1.id = "pg_home"
+    collection1 = create_collection("Home collection")
+    collection1.id = "cl_home"
 
-    bk3 = Bookmark(title="cool bookmark", description="here", url="http://cool.com")
-    db.session.add(bk3)
+    bookmarks = []
 
-    page2 = create_page("Sub page 1")
-    page3 = create_page("Sub page 2")
-    page4 = create_page("Sub page 3")
-    db.session.flush()
+    created_at = datetime.now()
+    for i in range(1,100):
+        bk = create_bookmark(
+            title=f"cool bookmark {i}", description="here", 
+            url="http://cool.com", collection=collection1)
+        bookmarks.append(bk)
 
-    b2 = create_block("", reference=page2)
-    b3 = create_block("", reference=page3)
-    b4 = create_block("", reference=page4)
-    b5 = create_block("Cool")
-    b6 = create_block("Cool", reference=bk3)
-    b7 = create_block("Unlinked 1")
-    b8 = create_block("Unlinked 1")
-    db.session.flush()
-    
-    insert_x_into_page_y(b2, page1)
-    insert_x_after_y(b3, b2)
-    insert_x_after_y(b4, b3)
-    insert_x_after_y(b5, b4)
-    insert_x_after_y(b6, b5)
+        bk.block.created_at = created_at
+        
+        days = random.randrange(1, 3)
+        created_at -= timedelta(days=days)
 
-    b7.ancestor_page_id = page1.id
-    b8.ancestor_page_id = page1.id
-    
-    create_inbox()
-
+    bookmark_blocks = [x.block for x in bookmarks]
     db.session.commit()
 
-    # print(db.session.query(Page).all())
-    # print(db.session.query(Block).all())
-    # print(db.session.query(Bookmark).all())
+    for bk, bl in zip(bookmarks, bookmark_blocks):
+        bl.set_reference(bk)
+    db.session.commit()
+
+    b7 = create_block("Unlinked 1", collection=collection1)
+    b8 = create_block("Unlinked 1", collection=collection1)
+    db.session.flush()
+    
+    # create_inbox()
+
+    db.session.commit()
 
     q = (
         db.session.query(Block)
@@ -134,19 +113,22 @@ def init_db():
     )
     # print(q)
     all = {x.id: x for x in q.all()}
-    # print(all)
+    print(all)
 
-    def print_tree(block, indent=0):
-        print("  " * indent, end='')
-        print(block)
-        if block.first_child_id:
-            print_siblings(block.first_child_id, indent+1)
+    for b in bookmarks:
+        print(b.block)
 
-    def print_siblings(block_id, indent=0):
-        child_id = block_id
-        while child_id:
-            print_tree(all[child_id], indent)
-            child_id = all[child_id].next_sibling_id
+    # def print_tree(block, indent=0):
+    #     print("  " * indent, end='')
+    #     print(block)
+    #     if block.first_child_id:
+    #         print_siblings(block.first_child_id, indent+1)
+
+    # def print_siblings(block_id, indent=0):
+    #     child_id = block_id
+    #     while child_id:
+    #         print_tree(all[child_id], indent)
+    #         child_id = all[child_id].next_sibling_id
 
     # for block in all.values():
     #     print(block)
@@ -172,62 +154,6 @@ def init_db():
 
     # print([getattr(getattr(x, 'bookmark_ref', None),'bookmark',None) for x in all])
 
-def move_to_top(context, block_id):
-    block = (
-        db.session.query(Block).
-        filter_by(id=block_id)
-    ).one()
-
-    page = (
-        db.session.query(Page).
-        filter_by(id=block.ancestor_page_id)
-    ).one()
-
-    before = (
-        db.session.query(Block).
-        filter_by(next_sibling_id=block_id)
-    ).first()
-
-    if before: # Unlink
-        before.next_sibling_id = block.next_sibling_id
-
-    if page.first_child_id != block.id:
-        block.next_sibling_id = page.first_child_id
-        page.first_child_id = block.id
-
-    db.session.flush()
-
-def move_after(context, block_id, after_id):
-    block = (
-        db.session.query(Block).
-        filter_by(id=block_id)
-    ).one()
-
-    after = (
-        db.session.query(Block).
-        filter_by(id=after_id)
-    ).one()
-
-    before = (
-        db.session.query(Block).
-        filter_by(next_sibling_id=block_id)
-    ).first()
-
-    if before: # Unlink
-        before.next_sibling_id = block.next_sibling_id
-    else:
-        page = (
-            db.session.query(Page).
-            filter_by(id=block.ancestor_page_id)
-        ).one()
-        if page.first_child_id == block.id:
-            page.first_child_id = block.next_sibling_id
-
-    original_next_id = after.next_sibling_id
-    after.next_sibling_id = block.id
-    block.next_sibling_id = original_next_id
-
-    db.session.flush()
 
 def add_block(context, page_id, contents):
     block = create_block(contents)
@@ -288,8 +214,8 @@ def delete_blocks(context, page_id, block_ids):
     db.session.flush()
 
 edit_funcs = {
-    'move_after': move_after,
-    'move_to_top': move_to_top,
+    # 'move_after': move_after,
+    # 'move_to_top': move_to_top,
     'add_block': add_block,
     'edit_block': edit_block,
     'delete_blocks': delete_blocks,

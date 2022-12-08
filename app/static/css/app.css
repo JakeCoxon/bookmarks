@@ -1,3 +1,145 @@
+html,
 body {
-    padding-top: 50px;
+  composes: m-0 p-0;
+  min-height: 100%;
+  height: 0;
+  color: #ddd;
+}
+html {
+  font-family: sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  composes: bg-gray-800;
+}
+
+pre {
+  word-wrap: break-word;
+  white-space: break-spaces;
+}
+
+.nav {
+  composes: h-full shadow-md py-4 px-3 bg-gray-500 rounded bg-gray-900;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 160px;
+}
+.nav-space {
+  flex-shrink: 0;
+  width: 160px;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+li {
+  list-style: none;
+}
+
+.myblock {
+  padding: 2px;
+  line-height: 1.5;
+  margin-bottom: 2px;
+  margin-right: 2px;
+  cursor: default;
+}
+
+.myblock-text {
+  composes: myblock;
+  white-space: pre;
+  border: 1px solid #333;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.gradient1 {
+  background: linear-gradient(-90deg, #ff00a1, #f6ff00);
+}
+.gradient2 {
+  background: linear-gradient(-90deg, #00fbff, #ae00ff);
+}
+.gradient3 {
+  background: linear-gradient(-90deg, #ff0088, #ddff00);
+}
+.gradient4 {
+  background: linear-gradient(-90deg, #e4a321, #21e462);
+}
+
+.grid {
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.myblock-bookmark {
+  composes: myblock;
+  // margin: 10px 0;
+  border: 1px solid #333;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: row;
+  height: 80px;
+  font-size: 14px;
+  padding: 0;
+  background: #555;
+  cursor: default;
+
+  &--small {
+    flex-direction: column;
+    height: 200px;
+    font-size: 11px;
+  }
+
+  &-main {
+    flex: 1;
+    width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+
+    &-title {
+    }
+
+    &-desc {
+      flex-grow: 1;
+    }
+
+    &-url {
+      font-size: 12px;
+
+      &-a {
+        color: #888;
+      }
+    }
+
+    &--small {
+      width: 100%;
+      height: 0;
+      order: 1;
+    }
+  }
+
+  &-preview {
+    width: 170px;
+    // background: #eee;
+
+    &--small {
+      width: 100%;
+      height: 80px;
+    }
+    & img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+  }
 }
