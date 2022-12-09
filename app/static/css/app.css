@@ -94,40 +94,11 @@ pre {
   width: 80px;
 }
 
-.urlcontainercontainer {
-  composes: relative m-auto w-full;
-  height: 200px;
-}
-
-.urlcontainer {
-  composes: p-4 rounded-md;
-
-  transition: background-color 100ms;
-
-  justify-content: center;
-
-  &--active {
-    composes: darkbox shadow-lg;
-  }
-
-  &-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  &-smallinput {
-    composes: bg-transparent border-gray-600 border-solid p-2 text-white rounded;
-    flex: 1;
-    &:focus {
-      outline: none;
-    }
-  }
-}
 .urlinput {
   composes: darkinput;
   flex: 1;
   &:focus {
-    outline: none;
+    // outline
   }
 }
 

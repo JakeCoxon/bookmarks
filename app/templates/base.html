@@ -15,6 +15,8 @@
   </head>
   <body>
 
+    {% include "toasts.html" %}
+
     <div class="flex flex-row h-full">
 
       <div class="leftnavspace">
@@ -40,12 +42,8 @@
         </footer>
 
       </div>
-      <div class="rightnavspace">
-        <div x-data class="rightnav" id="sidebar">
-
-          {% include "add_bookmark.html" %}
-
-        </div>
+      <div class="rightnavspace" data-no-click-through>
+        {% include "sidebar_add.html" %}
       </div>
 
     </div>

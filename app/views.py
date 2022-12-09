@@ -5,9 +5,10 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
-import json
+from functools import partial
+from flask import json
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash, make_response
+from flask import render_template, request, redirect, url_for, flash, make_response, get_flashed_messages, Markup
 from app.forms import UserForm
 from app.models import User, Collection, Block, Bookmark
 from app.controller import create_bookmark
@@ -40,6 +41,8 @@ def create_bookmark_view():
 
     data = request.json
 
+    col = Collection.query.get(data['collection_id'])
+
     title = data.get('title') or "Untitled"
     bk = create_bookmark(title=title, description=data['desc'], 
         url=data['url'], collection=col)
@@ -67,8 +70,10 @@ def save_bookmark_view():
     title = data.get('title') or "Untitled"
     bl.bookmark.title = title
     bl.bookmark.description = data['desc']
+    bl.bookmark.url = data['url']
 
     db.session.commit()
+    flash(Toast.success("Bookmark is saved"))
 
     return render_template('bookmark.html', block=bl)
 
@@ -275,6 +280,33 @@ def add_header(response):
         response.headers['Cache-Control'] = 'public, max-age=600'
     return response
 
+@app.after_request
+def add_toasts(response):
+
+    is_hx = request.headers.get('HX-Request')
+    messages = get_flashed_messages()
+    if is_hx and messages:
+        data = {'showToasts': messages}
+        response.headers['HX-Trigger'] = json.dumps(data)
+
+    return response
+
+class Toast:
+    classes = "rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer"
+    markup = Markup("""<div class="%(status_class)s %(classes)s">%(html)s</div>""")
+
+    def __init__(self, status_class, html):
+        self.status_class = status_class
+        self.html = html
+
+    def __html__(self):
+        return self.markup % { 'status_class': self.status_class, 
+            'classes': self.classes, 'html': self.html}
+
+Toast.success = staticmethod(partial(Toast, 'bg-emerald-600'))
+Toast.info = staticmethod(partial(Toast, 'bg-blue-600'))
+Toast.warning = staticmethod(partial(Toast, 'bg-orange-600'))
+Toast.error = staticmethod(partial(Toast, 'bg-chestnut-600'))
 
 @app.errorhandler(404)
 def page_not_found(error):

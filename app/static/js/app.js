@@ -1,3 +1,41 @@
+let addBookmarkHtml = "";
+
+const handleToastsFromResponse = (response) => {
+  const triggerJson = response.headers.get("HX-Trigger");
+  if (!triggerJson) return;
+
+  console.log(triggerJson);
+  const trigger = JSON.parse(triggerJson);
+  Object.entries(trigger).forEach(([name, value]) => {
+    const toasts = Alpine.store("toasts");
+    value.forEach((html) => {
+      toasts.add({ html });
+    });
+  });
+};
+const hxRequest = async (url, data) => {
+  let text, response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "HX-Request": "true",
+      },
+      body: JSON.stringify(data),
+    });
+    text = await response.text();
+  } catch (ex) {
+    console.error(ex);
+    const toasts = Alpine.store("toasts");
+    toasts.add("Could not make request");
+    throw ex;
+  }
+  handleToastsFromResponse(response);
+
+  return text;
+};
+
 const clickBookmark = async (event, blockId) => {
   const store = Alpine.store("global");
   if (event.metaKey) {
@@ -6,25 +44,28 @@ const clickBookmark = async (event, blockId) => {
     store.selectedIds = [blockId];
   }
 
-  const text = await fetch(`/sidebar`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ ids: store.selectedIds }),
-  }).then((x) => x.text());
+  const text = await hxRequest(`/sidebar`, { ids: store.selectedIds });
   let el = document.querySelector("#sidebar");
 
   Alpine.morph(el, text);
 };
 
 document.addEventListener("alpine:init", () => {
+  addBookmarkHtml = document.querySelector("#sidebar").outerHTML;
+
+  document.body.addEventListener("showToasts", (evt) => {
+    console.log("event listener", evt.detail);
+  });
+
   Alpine.store("global", {
     selectedIds: [],
     isSelected(id) {
       return this.selectedIds.includes(id);
     },
   });
+
+  Alpine.store("toasts", createToastsHandler());
+
   const store = Alpine.store("global");
 
   const isClickBody = (el) => {
@@ -33,6 +74,7 @@ document.addEventListener("alpine:init", () => {
       if (el.tagName == "TEXTAREA") return false;
       if (el.tagName == "BUTTON") return false;
       if (el.dataset.blockId) return false;
+      if ("noClickThrough" in el.dataset) return false;
       if (el.tagName == "BODY") return true;
       el = el.parentElement;
     }
@@ -46,90 +88,34 @@ document.addEventListener("alpine:init", () => {
       store.selectedIds = [];
       let el = document.querySelector("#sidebar");
 
-      Alpine.morph(
-        el,
-        `
-      
-      <div x-data class="rightnav" id="sidebar">
-
-          <button>
-            Home
-          </button>
-
-        </div>
-        `
-      );
+      Alpine.morph(el, addBookmarkHtml);
     }
   });
 });
 
-const createAddBookmarkModel = (collection_id) => {
-  const addBookmark = async (model) => {
-    const { url, title, desc } = model;
+// Called via createForm
+const addBookmark = async (model) => {
+  const { url, title, desc, collection_id } = model;
 
-    const text = await fetch(`/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ url, title, desc, collection_id }),
-    }).then((x) => x.text());
+  const text = await hxRequest(`/create`, { url, title, desc, collection_id });
 
-    let el = document.querySelector("#added");
-    const newEl = document.createElement("div");
-    el.prepend(newEl);
+  let el = document.querySelector("#added");
+  const newEl = document.createElement("div");
+  el.prepend(newEl);
 
-    Alpine.morph(newEl, text);
-  };
-
-  return {
-    url: "",
-    title: "",
-    desc: "",
-    focus: false,
-
-    clear() {
-      Object.assign(this, { url: "", title: "", desc: "" });
-    },
-
-    container: {
-      [":class"]() {
-        return this.focus ? "urlcontainer--active" : "";
-      },
-      ["@focusin"]() {
-        this.focus = true;
-      },
-      ["@focusout"]() {
-        this.focus = false;
-      },
-    },
-
-    urlInput: {
-      ["@keyup.enter"]() {
-        addBookmark(this);
-        this.clear();
-      },
-    },
-
-    trigger: {
-      ["@click"]() {
-        addBookmark(this);
-        this.clear();
-      },
-    },
-  };
+  Alpine.morph(newEl, text);
 };
 
+// Called via createForm
 const saveBookmark = async (model) => {
   const { id, url, title, desc } = model;
 
-  const text = await fetch(`/save`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ id, url, title, desc }),
-  }).then((x) => x.text());
+  const text = await hxRequest(`/save`, { id, url, title, desc });
+
+  const blockEls = document.querySelectorAll(`[data-block-id="${id}"]`);
+  for (const el of blockEls) {
+    Alpine.morph(el, text);
+  }
 
   // let el = document.querySelector("#added");
   // const newEl = document.createElement("div");
@@ -158,6 +144,32 @@ const createForm = (initialValues) => {
       [":disabled"]() {
         return this.isSubmitting;
       },
+    },
+  };
+};
+
+const createToastsHandler = () => {
+  let unique = 0;
+  return {
+    notices: [],
+    visible: [],
+    add(notice) {
+      notice.id = unique++;
+      this.notices.push(notice);
+      this.fire(notice.id);
+    },
+    fire(id) {
+      this.visible.push(this.notices.find((notice) => notice.id == id));
+      const timeShown = 2000 * this.visible.length;
+      setTimeout(() => this.remove(id), timeShown);
+    },
+    remove(id) {
+      const index = this.visible.findIndex((notice) => notice.id == id);
+      if (index > -1) this.visible.splice(index, 1);
+      setTimeout(() => {
+        const index = this.notices.findIndex((notice) => notice.id == id);
+        this.notices.splice(index, 1);
+      });
     },
   };
 };

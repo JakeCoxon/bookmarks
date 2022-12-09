@@ -4,7 +4,7 @@
     'myblock-bookmark--selected': $store.global.isSelected('{{block.id}}'),
   }"
   data-block-id="{{block.id}}"
-  @click="clickBookmark($event, '{{block.id}}')"
+  x-on:click="clickBookmark($event, '{{block.id}}')"
 >
 
   {% if block.bookmark %}

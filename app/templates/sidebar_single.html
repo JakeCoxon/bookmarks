@@ -1,4 +1,4 @@
-<div x-data class="rightnav bg-gray-900" id="sidebar">
+<div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar">
 
   <div class="px-6 py-4 h-16 flex items-center text-sm">
     <div>Edit bookmark</div>
@@ -7,7 +7,7 @@
   <div class="py-4 px-6">
     <form key="{{block.id}}" class="editform" x-data="createForm({
       'id': '{{block.id}}',
-      'collectionId': '{{block.ancestor_collection_id}}',
+      'collection_id': '{{block.ancestor_collection_id}}',
       'onSubmit': saveBookmark,
       'url': '{{block.bookmark.url}}',
       'title': '{{block.bookmark.title}}',
