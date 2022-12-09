@@ -1,66 +1,65 @@
 {% extends 'base.html' %}
 
 {% block main %}
-<div class="container">
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="alert alert-success">
-        <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-  {% endwith %}
 
-  <div class="px-10 py-6 bg-blue-800">
-    <div class="text-sm">{{ collection.title }}</div>
+<div x-data="{ 'gridType': 'grid', 'collectionId': '{{collection.id}}' }">
+  <div class="px-10 py-4 h-16 flex flex-row">
+    <div class="text-sm flex-1 self-center">
+      {{ collection.title }}
+    </div>
+    <div class="text-sm">
+      <div class="flex flex-row">
+        <button type="button" class="smallbutton rounded-tl rounded-bl" :class="{'bg-gray-800': gridType == 'grid'}" @click="gridType = 'grid'">Grid</button>
+        <button type="button" class="smallbutton" :class="{'bg-gray-800': gridType == 'list'}" @click="gridType = 'list'">List</button>
+        <button type="button" class="smallbutton rounded-tr rounded-br" :class="{'bg-gray-800': gridType == 'card'}" @click="gridType = 'card'">Card</button>
+      </div>
+    </div>
   </div>
 
-  <div class="p-10">
-    <p>{{ collection.contents }}</p>
-
-    <div class="h-12"></div>
-
-    {% for group, label, blocks in groups %}
-
-      <h2 class="text-sm">
-        {{label}}
-      </h2>
-
-      <div class="grid">
-      {% for block in blocks %}
-        {% if block.collection %}
-          <div>
-            <a href="/collection/{{ block.id }}">{{ block.collection.title }}</a>
-          </div>
-        {% elif block.bookmark %}
-          <div class="myblock-bookmark">
-            <div class="myblock-bookmark-preview gradient2"></div>
-            <div class="myblock-bookmark-main">
-              <div class="myblock-bookmark-main-title">{{block.bookmark.title}}</div>
-              <div class="myblock-bookmark-main-desc">{{block.bookmark.description}}</div>
-              <div class="myblock-bookmark-main-url">
-                <a class="myblock-bookmark-main-url-a" href="{{block.bookmark.url}}">{{block.bookmark.url}}</a>
-              </div>
-            </div>
-          </div>
-        {% else %}
-          <div class="myblock-bookmark">
-            <div class="myblock-bookmark-preview gradient1"></div>
-            <div class="myblock-bookmark-main">
-              <div>{{block.contents}}</div>
-            </div>
+  <div class="flex flex-row items-stretch">
+    <div class="container">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="alert alert-success">
+            <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
           </div>
         {% endif %}
-      {% endfor %}
+      {% endwith %}
+
+      
+      <div class="px-10 pt-2">
+
+
+        <div class="h-12"></div>
+
+        <div class="grid" :class="'grid--' + gridType" id="added">
+        </div>
+
+        {% for group, label, blocks in groups %}
+
+          <h2 class="text-sm">
+            {{label}}
+          </h2>
+
+          <div class="grid" :class="'grid--' + gridType">
+          {% for block in blocks %}
+            {% include 'bookmark.html' %}
+          {% endfor %}
+          </div>
+
+          <div class="h-5"></div>
+
+        {% endfor %}
       </div>
 
-    {% endfor %}
+      <code>{{query}}</code>
+
+    </div>
+
   </div>
-
-  <code>{{query}}</code>
-
 </div>
 {% endblock %}

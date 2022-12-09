@@ -1,9 +1,9 @@
 html,
 body {
-  composes: m-0 p-0;
+  composes: m-0 p-0 select-none;
   min-height: 100%;
   height: 0;
-  color: #ddd;
+  // color: #ddd;
 }
 html {
   font-family: sans-serif;
@@ -11,12 +11,44 @@ html {
   -ms-text-size-adjust: 100%;
 }
 
-* {
-  box-sizing: border-box;
+*,
+::before,
+::after {
+  composes: border-current;
+}
+
+code,
+kbd,
+samp,
+pre {
+  composes: font-mono;
 }
 
 body {
-  composes: bg-gray-800;
+  composes: bg-gray-700 font-sans text-gray-100;
+}
+
+input::placeholder,
+textarea::placeholder {
+  composes: text-gray-400;
+}
+
+.darkbox {
+  composes: bg-gray-900;
+}
+
+.darkinput {
+  composes: bg-gray-600 text-gray-200 p-2 rounded;
+}
+.darkbutton {
+  composes: bg-gray-500 p-2 px-3 rounded;
+  &:not([disabled]):hover {
+    composes: bg-gray-400;
+  }
+}
+
+.smallbutton {
+  composes: px-3 py-1 border border-gray-700;
 }
 
 pre {
@@ -25,7 +57,7 @@ pre {
 }
 
 .nav {
-  composes: h-full shadow-md py-4 px-3 bg-gray-500 rounded bg-gray-900;
+  composes: h-full shadow-md py-4 px-3 rounded bg-gray-900;
   left: 0;
   position: fixed;
   top: 0;
@@ -36,13 +68,78 @@ pre {
   width: 160px;
 }
 
-ul,
-ol {
-  margin: 0;
-  padding: 0;
+.rightnav {
+  composes: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 400px;
+  flex-shrink: 0;
 }
-li {
-  list-style: none;
+.rightnavspace {
+  flex-shrink: 0;
+  width: 400px;
+}
+
+.leftnav {
+  composes: py-4 px-3 fixed bg-gray-800;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  flex-shrink: 0;
+}
+.leftnavspace {
+  flex-shrink: 0;
+  width: 80px;
+}
+
+.urlcontainercontainer {
+  composes: relative m-auto w-full;
+  height: 200px;
+}
+
+.urlcontainer {
+  composes: p-4 rounded-md;
+
+  transition: background-color 100ms;
+
+  justify-content: center;
+
+  &--active {
+    composes: darkbox shadow-lg;
+  }
+
+  &-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  &-smallinput {
+    composes: bg-transparent border-gray-600 border-solid p-2 text-white rounded;
+    flex: 1;
+    &:focus {
+      outline: none;
+    }
+  }
+}
+.urlinput {
+  composes: darkinput;
+  flex: 1;
+  &:focus {
+    outline: none;
+  }
+}
+
+.editform {
+  &-input {
+    composes: bg-gray-800 border-0 text-white mb-4 mt-1 p-2;
+    width: 100%;
+  }
+}
+
+.talltextarea {
+  height: 250px;
 }
 
 .myblock {
@@ -75,48 +172,95 @@ li {
 
 .grid {
   display: grid;
-  grid-gap: 10px;
+  grid-gap: 30px;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
+  &--list {
+    grid-gap: 10px;
+    grid-template-columns: 1fr;
+  }
+  &--card {
+    // grid-gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
 }
 
 .myblock-bookmark {
-  composes: myblock;
+  composes: myblock bg-gray-800 text-gray-200 rounded-lg border border-gray-900 select-none;
   // margin: 10px 0;
-  border: 1px solid #333;
-  border-radius: 3px;
+  // border: 1px solid #333;
   display: flex;
   flex-direction: row;
   height: 80px;
   font-size: 14px;
   padding: 0;
-  background: #555;
   cursor: default;
+  overflow: hidden;
 
-  &--small {
+  &--selected {
+    composes: bg-gray-600;
+  }
+
+  &--card {
     flex-direction: column;
     height: 200px;
-    font-size: 11px;
+    // font-size: 11px;
+  }
+
+  &--list {
+    height: 50px;
   }
 
   &-main {
+    composes: flex flex-col flex-1 px-2 py-2 pl-3;
     flex: 1;
     width: 0;
     display: flex;
     flex-direction: column;
-    padding: 5px;
+
+    &--card {
+      width: 100%;
+    }
+    &--list {
+      flex-direction: row;
+    }
+
+    &-info {
+      flex: 1;
+      &--list {
+        width: 50%;
+      }
+    }
 
     &-title {
+      margin: -3px 0;
     }
 
     &-desc {
+      margin: -3px 0;
       flex-grow: 1;
     }
 
     &-url {
+      align-self: flex-end;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       font-size: 12px;
 
+      &--card {
+        composes: w-full;
+      }
+
+      &--grid {
+        composes: w-full;
+      }
+
       &-a {
-        color: #888;
+        composes: text-gray-400;
+        &:hover {
+          composes: text-gray-200;
+        }
       }
     }
 
@@ -128,13 +272,14 @@ li {
   }
 
   &-preview {
-    width: 170px;
+    width: 120px;
     // background: #eee;
 
-    &--small {
+    &--card {
       width: 100%;
-      height: 80px;
+      height: 90px;
     }
+
     & img {
       width: 100%;
       height: 100%;

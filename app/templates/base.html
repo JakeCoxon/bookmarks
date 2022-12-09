@@ -7,48 +7,50 @@
 
     <title>Bookmarks</title>
 
-    <link rel="stylesheet" href="/static/css/app.css">
+    <script src="/static/js/styles.js"></script>
+    <link rel="stylesheet" href="/static/css/reset.css" />
+    <script defer src="https://unpkg.com/@alpinejs/morph@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     {% block css %} {% endblock%}
   </head>
   <body>
 
     <div class="flex flex-row h-full">
-      <div class="nav">
-        <ul class="relative">
-          <li class="relative">
-            <a class="flex items-center text-sm py-1 px-3 h-12 overflow-hidden text-gray-700 text-ellipsis whitespace-nowrap rounded hover:text-gray-900 hover:bg-gray-100 transition duration-300 ease-in-out" href="#!" data-mdb-ripple="true" data-mdb-ripple-color="dark">Sidenav link 1</a>
-          </li>
-          <li class="relative">
-            <a class="flex items-center text-sm py-1 px-3 h-12 overflow-hidden text-gray-700 text-ellipsis whitespace-nowrap rounded hover:text-gray-900 hover:bg-gray-100 transition duration-300 ease-in-out" href="#!" data-mdb-ripple="true" data-mdb-ripple-color="dark">Sidenav link 2</a>
-          </li>
-          <li class="relative">
-            <a class="flex items-center text-sm py-1 px-3 h-12 overflow-hidden text-gray-700 text-ellipsis whitespace-nowrap rounded hover:text-gray-900 hover:bg-gray-100 transition duration-300 ease-in-out" href="#!" data-mdb-ripple="true" data-mdb-ripple-color="dark">Sidenav link 2</a>
-          </li>
-        </ul>
+
+      <div class="leftnavspace">
+        <div x-data class="leftnav">
+
+          <button>
+            Home
+          </button>
+        </div>
       </div>
-      <div class="nav-space"></div>
 
       <div class="flex-1">
 
-        <header>
-            {% include "header.html" %}
-        </header>
-
-        <main>
-            <div class="container">
-                {% block main %}{% endblock %}
-            </div>
+        <main class="">
+          <div class="container" >
+              {% block main %}{% endblock %}
+          </div>
         </main>
         <footer>
-            <div class="container">
-                {% include "footer.html" %}
-            </div>
+          <div class="container">
+              {% include "footer.html" %}
+          </div>
         </footer>
 
       </div>
+      <div class="rightnavspace">
+        <div x-data class="rightnav" id="sidebar">
+
+          {% include "add_bookmark.html" %}
+
+        </div>
+      </div>
+
     </div>
 
-    <script src="/static/js/styles.js"></script>
+    <script src="/static/js/app.js"></script>
     {% block js %} {% endblock%}
   </body>
 </html>

@@ -10,6 +10,7 @@ from app import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response
 from app.forms import UserForm
 from app.models import User, Collection, Block, Bookmark
+from app.controller import create_bookmark
 from app import controller
 from datetime import datetime
 
@@ -24,8 +25,6 @@ from datetime import datetime
 def home():
     return show_collection("cl_home")
 
-
-
 @app.route('/about/')
 def about():
     return render_template('about.html', name="Mary Jane")
@@ -35,6 +34,59 @@ def show_users():
     users = db.session.query(User).all() # or you could have used User.query.all()
 
     return render_template('show_users.html', users=users)
+
+@app.route('/create', methods=['POST'])
+def create_bookmark_view():
+
+    data = request.json
+
+    title = data.get('title') or "Untitled"
+    bk = create_bookmark(title=title, description=data['desc'], 
+        url=data['url'], collection=col)
+
+    bl = bk.block
+    db.session.flush()
+
+    bk.block.set_reference(bk)
+    db.session.commit()
+
+    return render_template('bookmark.html', block=bk.block)
+
+@app.route('/save', methods=['POST'])
+def save_bookmark_view():
+
+    data = request.json
+
+    query = (
+        db.session.query(Block).
+        filter_by(id=data['id']).
+        outerjoin(Bookmark, Bookmark.id == Block.id)
+    )
+    bl = query.first()
+
+    title = data.get('title') or "Untitled"
+    bl.bookmark.title = title
+    bl.bookmark.description = data['desc']
+
+    db.session.commit()
+
+    return render_template('bookmark.html', block=bl)
+
+@app.route('/sidebar', methods=['POST'])
+def sidebar():
+
+    ids = request.json['ids']
+
+    query = (
+        db.session.query(Block).
+        filter(Block.id.in_(ids)).
+        outerjoin(Collection, Collection.id == Block.id).
+        outerjoin(Bookmark, Bookmark.id == Block.id)
+    )
+    blocks = query.all()
+    if len(blocks) == 1:
+        return render_template('sidebar_single.html', block=blocks[0])
+    return render_template('sidebar_multi.html', blocks=blocks)
 
 @app.route('/collection/<collection_id>')
 def show_collection(collection_id):
@@ -49,7 +101,6 @@ def show_collection(collection_id):
     )
 
     blocks = query.all()
-
 
     groups = [(group, group_to_label(group), list(blocks)) 
         for group, blocks in group_by_date(query)]

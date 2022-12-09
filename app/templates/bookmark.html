@@ -1,0 +1,27 @@
+<div class="myblock-bookmark"
+  :class="{
+    ['myblock-bookmark--' + gridType]: true,
+    'myblock-bookmark--selected': $store.global.isSelected('{{block.id}}'),
+  }"
+  data-block-id="{{block.id}}"
+  @click="clickBookmark($event, '{{block.id}}')"
+>
+
+  {% if block.bookmark %}
+    <div class="myblock-bookmark-preview gradient2" :class="'myblock-bookmark-preview--' + gridType"></div>
+    <div class="myblock-bookmark-main" :class="'myblock-bookmark-main--' + gridType">
+      <div class="myblock-bookmark-main-info" :class="'myblock-bookmark-main-info--' + gridType">
+        <div class="myblock-bookmark-main-title" :class="'myblock-main-title--' + gridType">{{block.bookmark.title}}</div>
+        <div class="myblock-bookmark-main-desc" :class="'myblock-main-desc--' + gridType">{{block.bookmark.description}}</div>
+      </div>
+      <div class="myblock-bookmark-main-url" :class="'myblock-bookmark-main-url--' + gridType">
+        <a class="myblock-bookmark-main-url-a" href="{{block.bookmark.url}}">{{block.bookmark.url}}</a>
+      </div>
+    </div>
+  {% else %}
+    <div class="myblock-bookmark-preview gradient1" :class="'myblock-bookmark-preview--' + gridType"></div>
+    <div class="myblock-bookmark-main" :class="'myblock-bookmark-main--' + gridType">
+      <div>{{block.contents}}</div>
+    </div>
+  {% endif %}
+</div>

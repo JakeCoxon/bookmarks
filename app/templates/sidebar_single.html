@@ -1,0 +1,55 @@
+<div x-data class="rightnav bg-gray-900" id="sidebar">
+
+  <div class="px-6 py-4 h-16 flex items-center text-sm">
+    <div>Edit bookmark</div>
+  </div>
+  
+  <div class="py-4 px-6">
+    <form key="{{block.id}}" class="editform" x-data="createForm({
+      'id': '{{block.id}}',
+      'collectionId': '{{block.ancestor_collection_id}}',
+      'onSubmit': saveBookmark,
+      'url': '{{block.bookmark.url}}',
+      'title': '{{block.bookmark.title}}',
+      'desc': '{{block.bookmark.description}}',
+      'image': '',
+      'notes': ''
+    })"
+      x-bind="form">
+
+
+      <div class="my-2">
+        <div class="mb-1">URL</div>
+        <input x-model="url" class="darkinput w-full" />
+      </div>
+
+
+      <div class="my-2">
+        <div class="mb-1">Title</div>
+        <input x-model="title" class="darkinput w-full" />
+      </div>
+
+      <div class="my-2">
+        <div class="mb-1">Image</div>
+        <input x-model="image" class="darkinput w-full" />
+      </div>
+
+      
+      <div class="my-2">
+        <div class="mb-1">Description</div>
+        <textarea x-model="desc" class="darkinput talltextarea w-full"></textarea>
+      </div>
+
+      <div class="my-2">
+        <div class="mb-1">Notes</div>
+        <textarea x-model="notes" class="darkinput talltextarea w-full"></textarea>
+      </div>
+
+      <button class="darkbutton w-full" x-bind="trigger">
+        <div x-show="!isSubmitting">Save</div>
+        <div x-show="isSubmitting">Saving</div>
+      </button>
+    </form>
+  </div>
+
+</div>

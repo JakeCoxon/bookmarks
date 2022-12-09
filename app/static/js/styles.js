@@ -49,115 +49,116 @@ const colors = {
   primary: "var(--color-primary)",
   secondary: "var(--color-secondary)",
 
+  // https://tailwind.ink stripe palette
+
+  // gray https://www.tailwindshades.com/#color=217%2C17%2C15&step-up=10&step-down=3&hue-shift=-16&name=shark&base-stop=6&overrides=e30%3D
   gray: {
-    100: "#f7fafc",
-    200: "#edf2f7",
-    300: "#e2e8f0",
-    400: "#cbd5e0",
-    500: "#a0aec0",
-    600: "#718096",
-    700: "#4a5568",
-    800: "#2d3748",
-    900: "#1a202c",
-  },
-  red: {
-    100: "#fff5f5",
-    200: "#fed7d7",
-    300: "#feb2b2",
-    400: "#fc8181",
-    500: "#f56565",
-    600: "#e53e3e",
-    700: "#c53030",
-    800: "#9b2c2c",
-    900: "#742a2a",
-  },
-  orange: {
-    100: "#fffaf0",
-    200: "#feebc8",
-    300: "#fbd38d",
-    400: "#f6ad55",
-    500: "#ed8936",
-    600: "#dd6b20",
-    700: "#c05621",
-    800: "#9c4221",
-    900: "#7b341e",
-  },
-  yellow: {
-    100: "#fffff0",
-    200: "#fefcbf",
-    300: "#faf089",
-    400: "#f6e05e",
-    500: "#ecc94b",
-    600: "#d69e2e",
-    700: "#b7791f",
-    800: "#975a16",
-    900: "#744210",
-  },
-  green: {
-    100: "#f0fff4",
-    200: "#c6f6d5",
-    300: "#9ae6b4",
-    400: "#68d391",
-    500: "#48bb78",
-    600: "#38a169",
-    700: "#2f855a",
-    800: "#276749",
-    900: "#22543d",
-  },
-  teal: {
-    100: "#e6fffa",
-    200: "#b2f5ea",
-    300: "#81e6d9",
-    400: "#4fd1c5",
-    500: "#38b2ac",
-    600: "#319795",
-    700: "#2c7a7b",
-    800: "#285e61",
-    900: "#234e52",
+    50: "#A5B3C0",
+    100: "#97A6B5",
+    200: "#798CA0",
+    300: "#5F7186",
+    400: "#4A5768",
+    500: "#353E4B",
+    600: "#20252D",
+    700: "#191D24",
+    800: "#13161B",
+    900: "#0D0E12",
   },
   blue: {
-    100: "#ebf8ff",
-    200: "#bee3f8",
-    300: "#90cdf4",
-    400: "#63b3ed",
-    500: "#4299e1",
-    600: "#3182ce",
-    700: "#2b6cb0",
-    800: "#2c5282",
-    900: "#2a4365",
+    50: "#F5FCFF",
+    100: "#D9EDFF",
+    200: "#ACCFFC",
+    300: "#85ACF4",
+    400: "#758CEC",
+    500: "#5C66D2",
+    600: "#414AA6",
+    700: "#313B84",
+    800: "#262C62",
+    900: "#152041",
   },
-  indigo: {
-    100: "#ebf4ff",
-    200: "#c3dafe",
-    300: "#a3bffa",
-    400: "#7f9cf5",
-    500: "#667eea",
-    600: "#5a67d8",
-    700: "#4c51bf",
-    800: "#434190",
-    900: "#3c366b",
+  teal: {
+    50: "#EEFDFE",
+    100: "#CFF3FB",
+    200: "#8ED8E9",
+    300: "#62BDE4",
+    400: "#4D9DCE",
+    500: "#277FB5",
+    600: "#1C5B92",
+    700: "#154876",
+    800: "#0F3451",
+    900: "#082530",
+  },
+  emerald: {
+    50: "#F2FEEE",
+    100: "#CFF7C9",
+    200: "#91E396",
+    300: "#52D080",
+    400: "#3EB574",
+    500: "#288D60",
+    600: "#216B44",
+    700: "#18533A",
+    800: "#113B34",
+    900: "#0A2627",
+  },
+  orange: {
+    50: "#FBF9EA",
+    100: "#F6E4BA",
+    200: "#E7C07B",
+    300: "#DC9742",
+    400: "#CB7519",
+    500: "#AD5102",
+    600: "#893301",
+    700: "#6C2706",
+    800: "#501A0F",
+    900: "#361206",
+  },
+  chestnut: {
+    50: "#FEFAEE",
+    100: "#FCE2C0",
+    200: "#EFB586",
+    300: "#E78B5F",
+    400: "#D7664B",
+    500: "#B34434",
+    600: "#912728",
+    700: "#731620",
+    800: "#550F1C",
+    900: "#3B0B14",
+  },
+  cerise: {
+    50: "#FEF7F4",
+    100: "#FBE0DD",
+    200: "#F2AFB3",
+    300: "#EC798B",
+    400: "#DC5472",
+    500: "#BC3263",
+    600: "#98184D",
+    700: "#73123F",
+    800: "#560E39",
+    900: "#3B0427",
   },
   purple: {
-    100: "#faf5ff",
-    200: "#e9d8fd",
-    300: "#d6bcfa",
-    400: "#b794f4",
-    500: "#9f7aea",
-    600: "#805ad5",
-    700: "#6b46c1",
-    800: "#553c9a",
-    900: "#44337a",
+    50: "#FEF7FF",
+    100: "#F8DDF4",
+    200: "#E8ADE1",
+    300: "#D882D9",
+    400: "#BF62CF",
+    500: "#9B47B2",
+    600: "#743095",
+    700: "#57237E",
+    800: "#3D1867",
+    900: "#2A0D53",
   },
-  pink: {
-    100: "#fff5f7",
-    200: "#fed7e2",
-    300: "#fbb6ce",
-    400: "#f687b3",
-    500: "#ed64a6",
-    600: "#d53f8c",
-    700: "#b83280",
-    800: "#97266d",
-    900: "#702459",
+  indigo: {
+    50: "#F8F9FE",
+    100: "#E7E5FC",
+    200: "#C6C0E9",
+    300: "#AE9DDE",
+    400: "#9B7AD8",
+    500: "#7F58BE",
+    600: "#5F4199",
+    700: "#4A2D7F",
+    800: "#362164",
+    900: "#20144C",
   },
 };
 
@@ -240,14 +241,7 @@ const config = {
       "Georgia",
       "serif",
     ],
-    mono: [
-      "Menlo",
-      "Monaco",
-      "Consolas",
-      "Liberation Mono",
-      "Courier New",
-      "monospace",
-    ],
+    mono: ["Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
   },
 
   textSizes: {
@@ -305,6 +299,7 @@ const config = {
   borderColors: global.Object.assign(
     {
       default: "currentColor",
+      current: "currentColor",
     },
     colors
   ),
@@ -751,7 +746,7 @@ const staticStyles = {
   "justify-around": { justifyContent: "space-around" },
 
   // https://tailwindcss.com/docs/flexbox-align-items
-  "items-stretch": { alignItems: "flex-stretch" },
+  "items-stretch": { alignItems: "stretch" },
   "items-start": { alignItems: "flex-start" },
   "items-center": { alignItems: "center" },
   "items-end": { alignItems: "flex-end" },
@@ -949,8 +944,7 @@ const parseCss = (str) => {
     }
     return previous;
   };
-  const match = (expected) =>
-    tokens[idx] === expected ? (advance(), true) : false;
+  const match = (expected) => (tokens[idx] === expected ? (advance(), true) : false);
   const parseValue = () => {
     if (match("{")) return parseKvs();
     if (match(":")) {
@@ -987,179 +981,62 @@ const generateTw = ({ staticStyles, dynamicStyles }, config) => {
     }, {});
   });
   Object.entries(dynamicStyles).forEach(([key, value]) => {
-    (Array.isArray(value) ? value : [value]).forEach(
-      ({ prop, format, config: configName }) => {
-        (Array.isArray(prop) ? prop : [prop]).forEach((prop) => {
-          Object.entries(config[configName]).forEach(
-            ([keySuffix, styleValue]) => {
-              const thing = (keySuffix, styleValue) => {
-                if (!format && typeof styleValue === "object") {
-                  Object.entries(styleValue).forEach(
-                    ([keySuffix2, styleValue]) => {
-                      thing(`${keySuffix}-${keySuffix2}`, styleValue);
-                    }
-                  );
-                  return;
-                }
-
-                const keyFull =
-                  keySuffix === "default" ? `.${key}` : `.${key}-${keySuffix}`;
-                obj[keyFull] = Object.assign(obj[keyFull] || {}, {
-                  [kebabize(prop)]: format ? format(styleValue) : styleValue,
-                });
-              };
-              thing(keySuffix, styleValue);
+    (Array.isArray(value) ? value : [value]).forEach(({ prop, format, config: configName }) => {
+      (Array.isArray(prop) ? prop : [prop]).forEach((prop) => {
+        Object.entries(config[configName]).forEach(([keySuffix, styleValue]) => {
+          const recur = (keySuffix, styleValue) => {
+            if (!format && typeof styleValue === "object") {
+              Object.entries(styleValue).forEach(([keySuffix2, styleValue]) => {
+                recur(`${keySuffix}-${keySuffix2}`, styleValue);
+              });
+              return;
             }
-          );
+
+            const keyFull = keySuffix === "default" ? `.${key}` : `.${key}-${keySuffix}`;
+            obj[keyFull] = Object.assign(obj[keyFull] || {}, {
+              [kebabize(prop)]: format ? format(styleValue) : styleValue,
+            });
+          };
+          recur(keySuffix, styleValue);
         });
-      }
-    );
+      });
+    });
   });
   return obj;
 };
-const lookupClass =
-  ({ staticStyles, dynamicStyles }, config) =>
-  (acc, className) => {
-    let mods = [];
-    let modifier = className;
-
-    while (modifier !== null) {
-      modifier = className.match(/^([a-z-_]+):/i);
-      if (modifier) {
-        className = className.substr(modifier[0].length);
-        mods.push(modifier[1]);
-      }
-    }
-
-    mods = mods.map((mod) => {
-      if (mod === "hover" || mod === "focus" || mod === "active") {
-        return ":" + mod;
-      }
-      return "@media (min-width: " + config.screens[mod] + ")";
-    });
-
-    if (staticStyles[className]) {
-      if (mods.length) {
-        dset(acc, mods, merge(dlv(acc, mods, {}), staticStyles[className]));
-        return acc;
-      } else {
-        return merge(acc, staticStyles[className]);
-      }
-    }
-
-    let key;
-    Object.keys(dynamicStyles).some((k) => {
-      if (className.startsWith(k + "-") || className === k) {
-        key = k;
-        return true;
-      }
-    });
-    if (!key) {
-      const extra = dlv(acc, "extra", []);
-      extra.push(className);
-      dset(acc, "extra", extra);
-      return acc;
-    }
-
-    let value = className.substr(key.length + 1);
-    if (value === "") value = "default";
-    if (value.indexOf("-") > 0) value = value.split("-");
-    let props;
-
-    if (Array.isArray(dynamicStyles[key])) {
-      props = filterFirst(dynamicStyles[key], (x) => {
-        const propVal = dlv(config[x.config], value);
-        if (propVal === undefined) {
-          return;
-        }
-
-        return {
-          [x.prop]: x.format ? x.format(propVal) : propVal,
-        };
-      });
-      if (props === undefined) {
-        console.warn(
-          `Couldn't find ${value} in config for ${dynamicStyles[key].map(
-            (x) => x.config
-          )}`
-        );
-        return acc;
-      }
-    } else {
-      props = Array.isArray(dynamicStyles[key].prop)
-        ? dynamicStyles[key].prop
-        : [dynamicStyles[key].prop];
-      const format = dynamicStyles[key].format
-        ? dynamicStyles[key].format
-        : (x) => x;
-      props = props.reduce((acc, prop) => {
-        const propVal = dlv(config[dynamicStyles[key].config], value);
-        if (propVal === undefined) return acc;
-        return {
-          ...acc,
-          [prop]: format(propVal),
-        };
-      }, {});
-      if (Object.keys(props).length === 0) {
-        console.warn(
-          `Couldn't find ${value} in config for ${dynamicStyles[key].prop}`
-        );
-        return acc;
-      }
-    }
-    if (mods.length) {
-      dset(acc, mods, merge(dlv(acc, mods, {}), props));
-      return acc;
-    } else {
-      return merge(acc, props);
-    }
-  };
-const filterFirst = (arr, pred) => {
-  let i = 0;
-  while (i < arr.length) {
-    const res = pred(arr[i]);
-    if (res) return res;
-    i++;
-  }
-};
-
-function merge(a, b) {
-  return Object.assign({}, a, b);
-}
-
-// https://github.com/lukeed/dset
-function dset(obj, keys, val) {
-  keys.split && (keys = keys.split("."));
-  var i = 0,
-    l = keys.length,
-    t = obj,
-    x;
-  for (; i < l; ++i) {
-    x = t[keys[i]];
-    t = t[keys[i]] = i === l - 1 ? val : x == null ? {} : x;
-  }
-}
-
-// https://github.com/developit/dlv
-function dlv(obj, key, def, p) {
-  p = 0;
-  key = key.split ? key.split(".") : key;
-  while (obj && p < key.length) obj = obj[key[p++]];
-  return obj === undefined || p < key.length ? def : obj;
-}
 
 const kebabize = (str) =>
-  str.replace(
-    /[A-Z]+(?![a-z])|[A-Z]/g,
-    ($, ofs) => (ofs ? "-" : "") + $.toLowerCase()
-  );
+  str.replace(/[A-Z]+(?![a-z])|[A-Z]/g, ($, ofs) => (ofs ? "-" : "") + $.toLowerCase());
+
+const error = (str) => {
+  throw new Error(str);
+};
+
+const overwriteStylesWithComposedStyles = (properties, lookupMap) => {
+  const composedStyles = {};
+  if (properties.composes) {
+    const composes = properties.composes;
+    delete properties.composes;
+    const copyProperties = { ...properties };
+
+    const styles = composes.split(/\s+/).reduce((acc, name) => {
+      const lookup = lookupMap[`.${name}`] ?? error(`Unrecognised class name '.${name}'`);
+      return Object.assign(acc, lookup);
+    }, {});
+    Object.entries(styles).forEach(([styleName, styleValue]) => {
+      composedStyles[kebabize(styleName)] = styleValue;
+    });
+
+    // This is awkward because we want the original properties to override composedStyles
+    Object.assign(properties, composedStyles, copyProperties);
+  }
+  Object.values(properties).forEach((value) => {
+    if (typeof value == "object") overwriteStylesWithComposedStyles(value, lookupMap);
+  });
+};
 
 const createCssGenerator = () => {
   const lookupMap = {};
-
-  const error = (str) => {
-    throw new Error(str);
-  };
 
   return {
     addStyles: (styles) => {
@@ -1171,25 +1048,11 @@ const createCssGenerator = () => {
     addCss: (source) => {
       const classes = parseCss(source);
 
-      Object.entries(classes).forEach(([key, value]) => {
-        const composedStyles = {};
-        if (value.composes) {
-          const styles = value.composes.split(/\s+/).reduce((acc, name) => {
-            Object.assign(
-              acc,
-              lookupMap[`.${name}`] ?? error(`Unsupported class name .${name}`)
-            );
-            return acc;
-          }, {});
-          Object.entries(styles).forEach(([styleName, styleValue]) => {
-            composedStyles[kebabize(styleName)] = styleValue;
-          });
+      Object.entries(classes).forEach(([key, properties]) => {
+        overwriteStylesWithComposedStyles(properties, lookupMap);
 
-          delete value.composes;
-        }
-        Object.assign(composedStyles, value);
         if (lookupMap[key]) error(`Already exists ${key}`);
-        lookupMap[key] = composedStyles;
+        lookupMap[key] = properties;
       });
     },
     finalCss: () => {
@@ -1201,9 +1064,7 @@ const createCssGenerator = () => {
         const defer = [];
         const props = Object.entries(value).reduce(
           (acc, [prop, value]) => (
-            typeof value === "object"
-              ? defer.push([prop, value])
-              : acc.push(`${prop}: ${value};`),
+            typeof value === "object" ? defer.push([prop, value]) : acc.push(`${prop}: ${value};`),
             acc
           ),
           []
@@ -1242,8 +1103,7 @@ fetch("/static/css/app.css")
     console.log(cssGenerator.finalCss());
 
     const insertCssIntoBody = (css) =>
-      (document.head.appendChild(document.createElement("style")).innerHTML =
-        css);
+      (document.head.appendChild(document.createElement("style")).innerHTML = css);
 
     insertCssIntoBody(cssGenerator.finalCss());
   });
