@@ -5,24 +5,6 @@ from app.models import BasicData, Url
 from datetime import timezone
 import datetime
 
-def do_import():
-    with open('/Users/jakecoxon/Dev/scripts/whatsapp-data.json') as f:
-        data = json.load(f)
-
-    for data, contents in data:
-        m = re.search('\d?\d:\d\d .., \d\d\/\d\d/\d\d\d\d', data)
-        date = m.group(0)
-
-        date = datetime.datetime.strptime(
-            date, "%H:%M %p, %d/%m/%Y"
-        ).replace(tzinfo=timezone.utc)
-
-        thing = BasicData(contents=contents, created_at=date)
-
-        db.session.add(thing)
-    db.session.commit()
-
-URL_PATTERN = r'[A-Za-z0-9]+://[A-Za-z0-9%-_]+(/[A-Za-z0-9%-_])*(#|\\?)[A-Za-z0-9%-_&=]*'
 
 def fetch_metadata(urls):
     import os

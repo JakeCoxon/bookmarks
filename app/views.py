@@ -10,18 +10,11 @@ from functools import partial
 from flask import json
 from app import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response, get_flashed_messages, Markup
-from app.forms import UserForm
+from app.forms import UserForm, BookmarkForm, NoteForm
 from app.models import User, Collection, Block, Bookmark
 from app.controller import create_bookmark
 from app import controller
 from datetime import datetime
-
-# from sqlalchemy.orm import select, select_from, join
-# import sqlite3
-
-###
-# Routing for your application.
-###
 
 @app.route('/')
 def home():
@@ -72,10 +65,13 @@ def save_bookmark_view():
     )
     bl = query.first()
 
-    title = data.get('title') or "Untitled"
-    bl.bookmark.title = title
-    bl.bookmark.description = data['desc']
-    bl.bookmark.url = data['url']
+    if bl.bookmark:
+        title = data.get('title') or "Untitled"
+        bl.bookmark.title = title
+        bl.bookmark.description = data['desc']
+        bl.bookmark.url = data['url']
+    else:
+        bl.contents = data['contents']
 
     db.session.commit()
     flash(Toast.success("Bookmark is saved"))
@@ -95,7 +91,12 @@ def sidebar():
     )
     blocks = query.all()
     if len(blocks) == 1:
-        return render_template('sidebar_single.html', block=blocks[0])
+        block = blocks[0]
+        FormType = BookmarkForm if block.bookmark else NoteForm
+        print(FormType)
+        form = FormType.from_block(block, formdata=None)
+
+        return render_template('sidebar_single.html', block=block, form=form)
     return render_template('sidebar_multi.html', blocks=blocks)
 
 @app.route('/collection/<collection_id>')
@@ -147,83 +148,6 @@ def model_to_dict(self):
     attrs = vars(self)
     return { k : attrs[k] for k in keys if k in attrs}
     
-# @app.route('/collection/<collection_id>/api')
-# def show_page_api(collection_id):
-#     page = db.session.query(Page).filter_by(id=collection_id).one()
-
-#     query = (
-#         db.session.query(Block).
-#         filter_by(ancestor_collection_id=collection_id)
-#         # outerjoin(Page, Page.id == Block.id).
-#         # outerjoin(Bookmark, Bookmark.id == Block.id)
-#     )
-#     sidebar_pages = (
-#         db.session.query(Page)
-#         .filter_by(parent_collection_id=None)
-#         .outerjoin(Page.block)
-#         .all()
-#     )
-
-#     blocks = query.all()
-
-#     pages = [page] 
-#     pages += [x.page for x in blocks if x.page]
-#     pages += sidebar_pages
-
-#     response = {}
-#     response['blocks'] = {x.id: model_to_dict(x) for x in blocks}
-#     response['pages'] = {page.id: model_to_dict(page) for page in pages}
-#     response['bookmarks'] = {x.bookmark.id: model_to_dict(x.bookmark) for x in blocks if x.bookmark}
-#     response['galleries'] = {x.gallery.id: model_to_dict(x.gallery) for x in blocks if x.gallery}
-#     response['sidebar'] = [page.id for page in sidebar_pages]
-
-
-#     return make_response(json.dumps(response, default=default_json))
-
-# @app.route('/sidebar/api')
-# def show_sidebar_api():
-#     pages = (
-#         db.session.query(Page)
-#         .filter_by(parent_page_id=None)
-#         .outerjoin(Page.block)
-#         .all()
-#     )
-
-#     # query = (
-#     #     db.session.query(Block).
-#     #     filter_by(ancestor_page_id=page_id)
-#     #     # outerjoin(Page, Page.id == Block.id).
-#     #     # outerjoin(Bookmark, Bookmark.id == Block.id)
-#     # )
-
-    
-#     response = {}
-#     # response['blocks'] = {x.id: model_to_dict(x) for x in blocks}
-#     response['pages'] = {page.id: model_to_dict(page) for page in pages}
-#     response['sidebar'] = [page.id for page in pages]
-    
-#     return make_response(json.dumps(response, default=default_json))
-
-def default_json(obj):
-    if isinstance(obj, datetime):
-        return int(datetime.timestamp(obj) * 1000)
-    raise TypeError(f'Object of type {obj.__cls__.__name__} is not JSON serializable')
-
-@app.route('/bookmarks')
-def show_bookmarks():
-
-    bookmarks = (
-        db.session.query(Bookmark)
-    ).all()
-
-    return render_template('show_bookmarks.html', bookmarks=bookmarks)
-
-
-@app.route('/edit', methods=['POST'])
-def edit_request():
-    edits = request.get_json()
-    response = controller.handle_request(edits)
-    return make_response(response)
 
 @app.route('/add-user', methods=['POST', 'GET'])
 def add_user():

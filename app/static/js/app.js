@@ -13,6 +13,7 @@ const handleToastsFromResponse = (response) => {
   });
 };
 
+const errorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Something went wrong!</div>`;
 const hxRequest = async (url, data) => {
   let text, response;
   const requests = Alpine.store("requests");
@@ -28,10 +29,13 @@ const hxRequest = async (url, data) => {
       body: JSON.stringify(data),
     });
     text = await response.text();
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
   } catch (ex) {
     console.error(ex);
     const toasts = Alpine.store("toasts");
-    toasts.add("Could not make request");
+    toasts.add({ html: errorToast });
     throw ex;
   } finally {
     requests.numRequests--;
@@ -106,10 +110,10 @@ document.addEventListener("alpine:init", () => {
 });
 
 // Called via createForm
-const addBookmark = async (model) => {
-  const { url, title, desc, collection_id } = model;
+const addBookmark = async (form) => {
+  const data = form.getData();
 
-  const text = await hxRequest(`/create`, { url, title, desc, collection_id });
+  const text = await hxRequest(`/create`, data);
 
   let el = document.querySelector("#added");
   const newEl = document.createElement("div");
@@ -119,12 +123,12 @@ const addBookmark = async (model) => {
 };
 
 // Called via createForm
-const saveBookmark = async (model) => {
-  const { id, url, title, desc } = model;
+const saveBookmark = async (form) => {
+  const data = form.getData();
 
-  const text = await hxRequest(`/save`, { id, url, title, desc });
+  const text = await hxRequest(`/save`, data);
 
-  const blockEls = document.querySelectorAll(`[data-block-id="${id}"]`);
+  const blockEls = document.querySelectorAll(`[data-block-id="${data.id}"]`);
   for (const el of blockEls) {
     Alpine.morph(el, text);
   }
@@ -136,10 +140,18 @@ const saveBookmark = async (model) => {
   // Alpine.morph(newEl, text);
 };
 
-const createForm = (initialValues) => {
+const createForm = ({ initialValues, onSubmit }) => {
   return {
+    initialValues,
     ...initialValues,
+    onSubmit,
     isSubmitting: false,
+
+    getData() {
+      const data = {};
+      Object.keys(this.initialValues).forEach((k) => (data[k] = this[k]));
+      return data;
+    },
 
     form: {
       async ["@submit.prevent"]() {

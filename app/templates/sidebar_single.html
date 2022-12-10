@@ -1,49 +1,36 @@
 <div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar">
 
+{% if block.bookmark %}
   <div class="px-6 py-4 h-16 flex items-center text-sm">
     <div>Edit bookmark</div>
   </div>
-  
+{% else %}
+  <div class="px-6 py-4 h-16 flex items-center text-sm">
+    <div>Edit note</div>
+  </div>
+{% endif %}
+
   <div class="py-4 px-6">
-    <form key="{{block.id}}" class="editform" x-data="createForm({
-      'id': '{{block.id}}',
-      'collection_id': '{{block.ancestor_collection_id}}',
-      'onSubmit': saveBookmark,
-      'url': '{{block.bookmark.url}}',
-      'title': '{{block.bookmark.title}}',
-      'desc': '{{block.bookmark.description}}',
-      'image': '',
-      'notes': ''
-    })"
+    <form key="{{block.id}}" class="editform" x-data='createForm({
+      "onSubmit": saveBookmark,
+      "initialValues": {{form.data|tojson}}
+    })'
       x-bind="form">
 
+      {% for field in form %}
+        {% if field.widget.input_type != 'hidden' %}
+        <div class="my-2">
+          <div class="mb-1">{{ field.label }}</div>
 
-      <div class="my-2">
-        <div class="mb-1">URL</div>
-        <input x-model="url" class="darkinput w-full" />
-      </div>
-
-
-      <div class="my-2">
-        <div class="mb-1">Title</div>
-        <input x-model="title" class="darkinput w-full" />
-      </div>
-
-      <div class="my-2">
-        <div class="mb-1">Image</div>
-        <input x-model="image" class="darkinput w-full" />
-      </div>
-
-      
-      <div class="my-2">
-        <div class="mb-1">Description</div>
-        <textarea x-model="desc" class="darkinput talltextarea w-full"></textarea>
-      </div>
-
-      <div class="my-2">
-        <div class="mb-1">Notes</div>
-        <textarea x-model="notes" class="darkinput talltextarea w-full"></textarea>
-      </div>
+          {% with height=(field.render_kw or {}).get('height', '') %}
+            {{field(
+              class="darkinput w-full ", 
+              style=('height: ' ~ height if height else ''),
+              **{'x-model': field.name})}}
+          {% endwith %}
+        </div>
+        {% endif %}
+      {% endfor %}
 
       <button class="darkbutton w-full relative" x-bind="trigger">
         <div>Save</div>

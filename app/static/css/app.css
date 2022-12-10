@@ -78,6 +78,7 @@ pre {
   bottom: 0;
   width: 400px;
   flex-shrink: 0;
+  overflow-y: auto;
 }
 .rightnavspace {
   flex-shrink: 0;
@@ -112,10 +113,6 @@ pre {
   }
 }
 
-.talltextarea {
-  height: 250px;
-}
-
 .myblock {
   padding: 2px;
   line-height: 1.5;
@@ -132,16 +129,16 @@ pre {
 }
 
 .gradient1 {
-  background: linear-gradient(-90deg, #ff00a1, #f6ff00);
+  background: linear-gradient(45deg, #ff00a1, #f6ff00);
 }
 .gradient2 {
-  background: linear-gradient(-90deg, #00fbff, #ae00ff);
+  background: linear-gradient(45deg, #00fbff, #ae00ff);
 }
 .gradient3 {
-  background: linear-gradient(-90deg, #ff0088, #ddff00);
+  background: linear-gradient(45deg, #ff0088, #ddff00);
 }
 .gradient4 {
-  background: linear-gradient(-90deg, #e4a321, #21e462);
+  background: linear-gradient(45deg, #e4a321, #21e462);
 }
 
 .grid {
@@ -194,6 +191,7 @@ pre {
 
     &--card {
       width: 100%;
+      height: 0;
     }
     &--list {
       flex-direction: row;
@@ -201,6 +199,7 @@ pre {
 
     &-info {
       flex: 1;
+      overflow: hidden;
       &--list {
         width: 50%;
       }
@@ -246,12 +245,13 @@ pre {
   }
 
   &-preview {
-    width: 120px;
+    width: 25px;
+    flex-shrink: 0;
     // background: #eee;
 
     &--card {
       width: 100%;
-      height: 90px;
+      height: 25px;
     }
 
     & img {
