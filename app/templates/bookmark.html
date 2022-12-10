@@ -16,7 +16,7 @@
         <div class="myblock-bookmark-main-desc" :class="'myblock-main-desc--' + gridType">{{block.bookmark.description}}</div>
       </div>
       <div class="myblock-bookmark-main-url" :class="'myblock-bookmark-main-url--' + gridType">
-        <a class="myblock-bookmark-main-url-a" href="{{block.bookmark.url}}">{{block.bookmark.url}}</a>
+        <a class="myblock-bookmark-main-url-a" href="{{block.bookmark.url}}" target="_blank" x-on:click.stop>{{block.bookmark.url}}</a>
       </div>
     </div>
   {% else %}

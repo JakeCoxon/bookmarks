@@ -4,7 +4,7 @@ import re
 import json
 from app import db
 from app.models import Bookmark, Collection
-from app.controller import create_bookmark
+from app.controller import create_bookmark, create_block
 from datetime import timezone
 import datetime
 
@@ -15,7 +15,7 @@ def do_import():
     with open(input_file) as f:
         data = json.load(f)
 
-    col = Collection()
+    col = Collection(title="New collection")
     db.session.add(col)
 
     db.session.flush()
@@ -24,12 +24,18 @@ def do_import():
 
     for row in data:
 
-        bk = create_bookmark(title='', description=row['contents'], url=row['url'],
-            collection=col)
-        bk.block.created_at = datetime.datetime.fromtimestamp(row['timestamp'])
-        bookmarks.append(bk)
+        date = datetime.datetime.fromtimestamp(row['timestamp'])
 
-        print(bk)
+        if not row['url']:
+            bl = create_block(row['contents'], collection=col)
+            bl.created_at = date
+            print(bl)
+        else:
+            bk = create_bookmark(title='', description=row['contents'], url=row['url'],
+                collection=col, created_at=date)
+            bookmarks.append(bk)
+
+            print(bk)
 
     print(col)
 

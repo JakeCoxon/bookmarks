@@ -5,7 +5,7 @@ import json
 from datetime import timezone
 import datetime
 
-URL_PATTERN = r'[A-Za-z0-9]+://[A-Za-z0-9%-_]+(/[A-Za-z0-9%-_])*(#|\\?)[A-Za-z0-9%-_&=]*'
+URL_PATTERN = r'[A-Za-z0-9]+://([A-Za-z0-9%\.\-_]+)(/[A-Za-z0-9%\-\._])*(#|\\?)[A-Za-z0-9%-\_\.&=]*'
 input_file = "/Users/jake/odrive/Jake personal/Five laptop backup/allfiles/scripts/whatsapp-data.json"
 
 def do_convert():
@@ -28,6 +28,11 @@ def do_convert():
 
             m = re.search(URL_PATTERN, contents)
             url = m and m.group(0)
+            if url:
+                contents = contents.replace(url, '')
+                # remove some times where the host name is copied
+                contents = contents.replace(m.group(1), '')
+            contents = contents.strip()
 
             output_data.append({
                 'timestamp': int(datetime.datetime.timestamp(date)),

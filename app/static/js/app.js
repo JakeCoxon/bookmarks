@@ -47,9 +47,15 @@ const hxRequest = async (url, data) => {
 
 const clickBookmark = async (event, blockId) => {
   const store = Alpine.store("global");
+
   if (event.metaKey) {
-    store.selectedIds.push(blockId);
+    if (store.selectedIds.includes(blockId)) {
+      store.selectedIds = store.selectedIds.filter((x) => x !== blockId);
+    } else {
+      store.selectedIds.push(blockId);
+    }
   } else {
+    if (store.selectedIds.includes(blockId)) return;
     store.selectedIds = [blockId];
   }
 
@@ -89,6 +95,7 @@ document.addEventListener("alpine:init", () => {
       if (el.tagName == "INPUT") return false;
       if (el.tagName == "TEXTAREA") return false;
       if (el.tagName == "BUTTON") return false;
+      if (el.tagName == "A") return false;
       if (el.dataset.blockId) return false;
       if ("noClickThrough" in el.dataset) return false;
       if (el.tagName == "BODY") return true;

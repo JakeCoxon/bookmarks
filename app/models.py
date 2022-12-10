@@ -5,30 +5,6 @@ from sqlalchemy.sql import expression, functions
 import sqlalchemy
 from datetime import datetime
 
-class BasicData(db.Model):
-    __tablename__ = 'basicdata'
-    __bind_key__ = 'basic'
-    id = db.Column(db.Integer(), primary_key=True)
-    contents = db.Column(db.Text())
-
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-    def __repr__(self):
-        return '<BasicData %r>' % self.id
-
-class Url(db.Model):
-    __tablename__ = 'urls'
-    __bind_key__ = 'basic'
-    id = db.Column(db.Integer(), primary_key=True)
-    url = db.Column(db.Text())
-    meta = db.Column(db.Text())
-    caption = db.Column(db.Text())
-
-    created_at = db.Column(db.DateTime, default=datetime.now)
-
-    def __repr__(self):
-        return '<BasicData %r>' % self.id
-
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.String(255), primary_key=True)
@@ -70,15 +46,6 @@ class Block(db.Model):
     def color(self, value):
         self._color = value
 
-    # collection = db.relationship(
-    #     "Collection",
-    #     primaryjoin=(
-    #         "foreign(Collection.id)==Block.reference_id"
-    #     ),
-    #     backref="block",
-    #     uselist=False
-    # )
-
     bookmark = db.relationship(
         "Bookmark",
         primaryjoin=(
@@ -87,15 +54,6 @@ class Block(db.Model):
         backref="block",
         uselist=False
     )
-
-    # gallery = db.relationship(
-    #     "Gallery",
-    #     primaryjoin=(
-    #         "foreign(Gallery.id)==Block.reference_id"
-    #     ),
-    #     backref="block",
-    #     uselist=False
-    # )
 
     def set_reference(self, reference):
         self.reference_id = reference.id
@@ -109,12 +67,6 @@ class Block(db.Model):
 
     ancestor_collection_id = db.Column(db.String(255), db.ForeignKey("collections.id"))
 
-    # first_child_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
-    # next_sibling_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
-
-    # parent_block_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
-    # block_children = db.relationship("Block", foreign_keys=[parent_block_id])
-    # parent_block = db.relationship("Block", foreign_keys=[parent_block_id], remote_side=[id], back_populates="block_children")
 
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
@@ -131,15 +83,11 @@ class Collection(db.Model):
     id = db.Column(db.String(255), primary_key=True, default=default_id('cl_'))
     title = db.Column(db.String(1024))
 
-    # first_child_id = db.Column(db.String(255), db.ForeignKey("blocks.id"))
-    
-    # parent_page_id = db.Column(db.String(255), db.ForeignKey("pages.id"))
-    # page_children = db.relationship("Page")
-    # parent_page = db.relationship("Page", remote_side=[id], back_populates="page_children")
-
-    # locked = db.Column(db.Boolean, default=False)
+    blocks = db.relationship('Block', backref=db.backref('collection'), lazy='dynamic')
 
     owner = db.Column(db.String(255), db.ForeignKey("users.id"))
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     def __repr__(self):
         return '<Collection %r parent=%r>' % (self.id, 0)
@@ -154,12 +102,8 @@ class Bookmark(db.Model):
     logo = db.Column(db.Text())
     notes = db.Column(db.Text())
 
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
     def __repr__(self):
         return '<Bookmark %r url=%r>' % (self.id, self.url)
-
-# class Gallery(db.Model):
-#     __tablename__ = 'galleries'
-#     id = db.Column(db.String(255), primary_key=True, default=default_id('gl_'))
-    
-#     def __repr__(self):
-#         return '<Gallery %r>' % (self.id, self.url)

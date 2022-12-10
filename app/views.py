@@ -15,14 +15,23 @@ from app.models import User, Collection, Block, Bookmark
 from app.controller import create_bookmark
 from app import controller
 from datetime import datetime
+from sqlalchemy import func
 
 @app.route('/')
 def home():
-    return show_collection("cl_home")
 
-@app.route('/about/')
-def about():
-    return render_template('about.html', name="Mary Jane")
+    query = (
+        db.session.query(Collection, func.count(Block.id))
+        .select_from(Block)
+        .join(Block.collection)
+        .group_by(Collection)
+    ).all()
+
+    collections = [x for x, y in query]
+    for col, count in query:
+        col.block_count = count
+
+    return render_template('home.html', collections=collections)
 
 @app.route('/users')
 def show_users():
@@ -37,7 +46,7 @@ def create_bookmark_view():
 
     col = Collection.query.get(data['collection_id'])
 
-    title = data.get('title') or "Untitled"
+    title = data.get('title')
     bk = create_bookmark(title=title, description=data['desc'], 
         url=data['url'], collection=col)
 
@@ -66,7 +75,7 @@ def save_bookmark_view():
     bl = query.first()
 
     if bl.bookmark:
-        title = data.get('title') or "Untitled"
+        title = data.get('title')
         bl.bookmark.title = title
         bl.bookmark.url = data['url']
         bl.bookmark.image = data['image']

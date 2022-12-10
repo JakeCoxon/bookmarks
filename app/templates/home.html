@@ -1,7 +1,57 @@
 {% extends "base.html" %}
 
 {% block main %}
-<h1 class="page-header">Flask Starter Code</h1>
-<p class="lead">Use this starter template for your Flask apps as a way to quickly start any new project.<br>
-All you get are these files and mostly barebones HTML/CSS files.</p>
+
+
+<div x-data="">
+  <div class="px-10 py-4 h-16 flex flex-row">
+    <div class="text-sm flex-1 self-center">
+      Dashboard
+    </div>
+    <div class="text-sm">
+    </div>
+  </div>
+
+  <div class="flex flex-row items-stretch">
+    <div class="container">
+      
+      <div class="px-10 pt-2">
+
+
+        <div class="h-12"></div>
+
+        <div>
+          <button class="darkbutton">Create a new collection</button>
+        </div>
+        <div class="h-4"></div>
+
+        <table class="bg-gray-800 rounded" style="width: 500px">
+
+        {% for col in collections %}
+
+          <tr>
+            <td class="p-4">
+              <a class="cursor-pointer display-inline-block underline" href="/collection/{{col.id}}">
+                {{col.title}}
+              </a>
+            </td>
+            <td  class="p-4">
+              {{col.block_count}} blocks
+            </td>
+          </tr>
+        
+        {% endfor %}
+        </table>
+
+
+      
+      </div>
+
+      <code>{{query}}</code>
+
+    </div>
+
+  </div>
+</div>
+
 {% endblock %}
