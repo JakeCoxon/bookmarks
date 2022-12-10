@@ -17,6 +17,12 @@ from app import controller
 from datetime import datetime
 from sqlalchemy import func
 
+def htmx(content):
+    is_hx = request.headers.get('HX-Request')
+    if is_hx:
+        return content
+    return render_template('html_layout.html', content=Markup(content))
+
 @app.route('/')
 def home():
 
@@ -31,7 +37,14 @@ def home():
     for col, count in query:
         col.block_count = count
 
-    return render_template('home.html', collections=collections)
+    return htmx(render_template('home.html', collections=collections))
+
+
+@app.route('/empty')
+def home_empty():
+
+
+    return htmx(render_template('home.html', collections=[]))
 
 @app.route('/users')
 def show_users():
@@ -65,7 +78,7 @@ def save_bookmark_view():
 
     time.sleep(0.4)
 
-    data = request.json
+    data = request.form
 
     query = (
         db.session.query(Block).
@@ -93,7 +106,7 @@ def save_bookmark_view():
 @app.route('/sidebar', methods=['POST'])
 def sidebar():
 
-    ids = request.json['ids']
+    ids = request.form.getlist('ids')
 
     query = (
         db.session.query(Block).
@@ -128,8 +141,8 @@ def show_collection(collection_id):
         for group, blocks in group_by_date(query)]
     print(blocks)
 
-    return render_template('show_collection.html', 
-        collection=collection, blocks=blocks, groups=groups, query=query)
+    return htmx(render_template('show_collection.html', 
+        collection=collection, blocks=blocks, groups=groups, query=query))
 
 def group_to_label(group):
     return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]
@@ -224,6 +237,7 @@ def add_header(response):
 def add_toasts(response):
 
     is_hx = request.headers.get('HX-Request')
+
     messages = get_flashed_messages()
     if is_hx and messages:
         data = {'showToasts': messages}

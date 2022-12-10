@@ -1,49 +1,25 @@
 let addBookmarkHtml = "";
 
-const handleToastsFromResponse = (response) => {
-  const triggerJson = response.headers.get("HX-Trigger");
-  if (!triggerJson) return;
+const sendErrorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Couldn't send request!</div>`;
+const responseErrorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Something went wrong!</div>`;
 
-  const trigger = JSON.parse(triggerJson);
-  Object.entries(trigger).forEach(([name, value]) => {
-    const toasts = Alpine.store("toasts");
-    value.forEach((html) => {
-      toasts.add({ html });
-    });
+document.addEventListener("htmx:sendError", (evt) => {
+  const toasts = Alpine.store("toasts");
+  toasts.add({ html: sendErrorToast });
+});
+
+document.addEventListener("htmx:responseError", (evt) => {
+  const toasts = Alpine.store("toasts");
+  toasts.add({ html: responseErrorToast });
+});
+
+document.addEventListener("showToasts", (evt) => {
+  if (!Array.isArray(evt.detail.value)) return;
+  const toasts = Alpine.store("toasts");
+  evt.detail.value.forEach((html) => {
+    toasts.add({ html });
   });
-};
-
-const errorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Something went wrong!</div>`;
-const hxRequest = async (url, data) => {
-  let text, response;
-  const requests = Alpine.store("requests");
-  requests.numRequests++;
-
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "HX-Request": "true",
-      },
-      body: JSON.stringify(data),
-    });
-    text = await response.text();
-    if (!response.ok) {
-      throw new Error("Request failed");
-    }
-  } catch (ex) {
-    console.error(ex);
-    const toasts = Alpine.store("toasts");
-    toasts.add({ html: errorToast });
-    throw ex;
-  } finally {
-    requests.numRequests--;
-  }
-  handleToastsFromResponse(response);
-
-  return text;
-};
+});
 
 const clickBookmark = async (event, blockId) => {
   const store = Alpine.store("global");
@@ -59,15 +35,21 @@ const clickBookmark = async (event, blockId) => {
     store.selectedIds = [blockId];
   }
 
-  const text = await hxRequest(`/sidebar`, { ids: store.selectedIds });
-  let el = document.querySelector("#sidebar");
+  htmx.ajax("POST", "/sidebar", {
+    target: "#sidebar",
+    swap: "morph",
+    values: {
+      ids: store.selectedIds,
+    },
+  });
+  // const text = await hxRequest(`/sidebar`, { ids: store.selectedIds });
+  // let el = document.querySelector("#sidebar");
 
-  Alpine.morph(el, text);
+  // Alpine.morph(el, text);
 };
 
-document.body.addEventListener("customCssLoaded", () => {
+document.addEventListener("customCssLoaded", () => {
   for (const el of document.querySelectorAll("[x-cloak]")) {
-    console.log(el);
     el.removeAttribute("x-cloak");
   }
 });
@@ -112,8 +94,8 @@ document.addEventListener("alpine:init", () => {
       if (store.selectedIds.length == 0) return;
 
       store.selectedIds = [];
+      console.log("Deselect");
       let el = document.querySelector("#sidebar");
-
       Alpine.morph(el, addBookmarkHtml);
     }
   });
@@ -134,14 +116,19 @@ const addBookmark = async (form) => {
 
 // Called via createForm
 const saveBookmark = async (form) => {
-  const data = form.getData();
-
-  const text = await hxRequest(`/save`, data);
-
-  const blockEls = document.querySelectorAll(`[data-block-id="${data.id}"]`);
-  for (const el of blockEls) {
-    Alpine.morph(el, text);
-  }
+  const r = await htmx.ajax("POST", "/save", {
+    values: form.getData(),
+    swap: "none",
+    // handler: (...args) => {
+    //   // debugger;
+    //   // const blockEls = document.querySelectorAll(`[data-block-id="${data.id}"]`);
+    //   // for (const el of blockEls) {
+    //   //   Alpine.morph(el, text);
+    //   // }
+    // },
+  });
+  console.log(r);
+  // const text = await hxRequest(`/save`, data);
 
   // let el = document.querySelector("#added");
   // const newEl = document.createElement("div");

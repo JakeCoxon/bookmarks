@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Bookmarks</title>
+
+    <script src="/static/js/styles.js"></script>
+    <link rel="stylesheet" href="/static/css/reset.css" />
+    <script src="https://unpkg.com/htmx.org@1.8.4/dist/htmx.js" crossorigin="anonymous"></script>
+    <script src="/static/js/htmx-alpine.js"></script>
+    <script defer src="https://unpkg.com/@alpinejs/morph@3.x.x/dist/cdn.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.js"></script>
+    <script src="/static/js/app.js"></script>
+    {% block css %} {% endblock%}
+  </head>
+  <body>
+
+    {% include "toasts.html" %}
+
+    <div class="progress-bar" x-data="" :class="$store.requests.numRequests > 0 ? 'progress-bar--show' : ''">
+      <div class="progress-bar-value"></div>
+    </div>
+
+    {{content}}
+
+    
+    {% block js %} {% endblock%}
+  </body>
+</html>
