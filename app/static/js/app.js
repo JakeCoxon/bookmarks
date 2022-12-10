@@ -73,7 +73,10 @@ document.body.addEventListener("customCssLoaded", () => {
 });
 
 document.addEventListener("alpine:init", () => {
-  addBookmarkHtml = document.querySelector("#sidebar").outerHTML;
+  const sidebar = document.querySelector("#sidebar");
+  if (sidebar) {
+    addBookmarkHtml = sidebar.outerHTML;
+  }
 
   Alpine.store("global", {
     selectedIds: [],
