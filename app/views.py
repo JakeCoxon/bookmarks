@@ -68,10 +68,13 @@ def save_bookmark_view():
     if bl.bookmark:
         title = data.get('title') or "Untitled"
         bl.bookmark.title = title
-        bl.bookmark.description = data['desc']
         bl.bookmark.url = data['url']
+        bl.bookmark.image = data['image']
+        bl.bookmark.description = data['desc']
+        bl.bookmark.notes = data['notes']
     else:
         bl.contents = data['contents']
+    bl.color = data['color']
 
     db.session.commit()
     flash(Toast.success("Bookmark is saved"))
@@ -93,7 +96,6 @@ def sidebar():
     if len(blocks) == 1:
         block = blocks[0]
         FormType = BookmarkForm if block.bookmark else NoteForm
-        print(FormType)
         form = FormType.from_block(block, formdata=None)
 
         return render_template('sidebar_single.html', block=block, form=form)
@@ -115,7 +117,7 @@ def show_collection(collection_id):
 
     groups = [(group, group_to_label(group), list(blocks)) 
         for group, blocks in group_by_date(query)]
-    print(groups)
+    print(blocks)
 
     return render_template('show_collection.html', 
         collection=collection, blocks=blocks, groups=groups, query=query)

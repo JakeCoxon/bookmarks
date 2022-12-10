@@ -9,7 +9,7 @@
 >
 
   {% if block.bookmark %}
-    <div class="myblock-bookmark-preview gradient2" :class="'myblock-bookmark-preview--' + gridType"></div>
+    <div class="myblock-bookmark-preview colorstyle-{{block.color}}" :class="'myblock-bookmark-preview--' + gridType"></div>
     <div class="myblock-bookmark-main" :class="'myblock-bookmark-main--' + gridType">
       <div class="myblock-bookmark-main-info" :class="'myblock-bookmark-main-info--' + gridType">
         <div class="myblock-bookmark-main-title" :class="'myblock-main-title--' + gridType">{{block.bookmark.title}}</div>
@@ -20,7 +20,7 @@
       </div>
     </div>
   {% else %}
-    <div class="myblock-bookmark-preview gradient1" :class="'myblock-bookmark-preview--' + gridType"></div>
+    <div class="myblock-bookmark-preview colorstyle-{{block.color}}" :class="'myblock-bookmark-preview--' + gridType"></div>
     <div class="myblock-bookmark-main" :class="'myblock-bookmark-main--' + gridType">
       <div>{{block.contents}}</div>
     </div>

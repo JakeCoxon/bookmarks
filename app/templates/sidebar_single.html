@@ -10,6 +10,22 @@
   </div>
 {% endif %}
 
+{% macro render_field(field) %}
+  <div class="my-2">
+    <div class="mb-1">{{ field.label }}</div>
+    {{field(class="darkinput w-full")}}
+  
+  {% if field.errors %}
+    <ul class="errors">
+    {% for error in field.errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+  </dd>
+  </div>
+{% endmacro %}
+
   <div class="py-4 px-6">
     <form key="{{block.id}}" class="editform" x-data='createForm({
       "onSubmit": saveBookmark,
@@ -17,20 +33,21 @@
     })'
       x-bind="form">
 
-      {% for field in form %}
-        {% if field.widget.input_type != 'hidden' %}
-        <div class="my-2">
-          <div class="mb-1">{{ field.label }}</div>
+      {% if block.bookmark %}
 
-          {% with height=(field.render_kw or {}).get('height', '') %}
-            {{field(
-              class="darkinput w-full ", 
-              style=('height: ' ~ height if height else ''),
-              **{'x-model': field.name})}}
-          {% endwith %}
-        </div>
-        {% endif %}
-      {% endfor %}
+        {{ render_field(form.url) }}
+        {{ render_field(form.title) }}
+        {{ render_field(form.color) }}
+        {{ render_field(form.image) }}
+        {{ render_field(form.desc) }}
+        {{ render_field(form.notes) }}
+        
+      {% else %}
+
+        {{ render_field(form.color) }}
+        {{ render_field(form.contents) }}
+
+      {% endif %}
 
       <button class="darkbutton w-full relative" x-bind="trigger">
         <div>Save</div>

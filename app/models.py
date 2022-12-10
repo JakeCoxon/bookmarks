@@ -60,6 +60,15 @@ class Block(db.Model):
     contents = db.Column(db.Text())
 
     reference_id = db.Column(db.String(255))
+    _color = db.Column('color', db.String(255), default='gradient1')
+
+    @property
+    def color(self):
+        return self._color or 'gradient1'
+
+    @color.setter
+    def color(self, value):
+        self._color = value
 
     # collection = db.relationship(
     #     "Collection",
@@ -143,7 +152,7 @@ class Bookmark(db.Model):
     description = db.Column(db.Text())
     image = db.Column(db.Text())
     logo = db.Column(db.Text())
-    caption = db.Column(db.Text())
+    notes = db.Column(db.Text())
 
     def __repr__(self):
         return '<Bookmark %r url=%r>' % (self.id, self.url)
