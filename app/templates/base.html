@@ -17,6 +17,10 @@
 
     {% include "toasts.html" %}
 
+    <div class="progress-bar" x-data="$store.requests" :class="numRequests > 0 ? 'progress-bar--show' : ''">
+      <div class="progress-bar-value"></div>
+    </div>
+
     <div class="flex flex-row h-full">
 
       <div class="leftnavspace">

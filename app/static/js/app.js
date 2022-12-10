@@ -4,7 +4,6 @@ const handleToastsFromResponse = (response) => {
   const triggerJson = response.headers.get("HX-Trigger");
   if (!triggerJson) return;
 
-  console.log(triggerJson);
   const trigger = JSON.parse(triggerJson);
   Object.entries(trigger).forEach(([name, value]) => {
     const toasts = Alpine.store("toasts");
@@ -13,8 +12,12 @@ const handleToastsFromResponse = (response) => {
     });
   });
 };
+
 const hxRequest = async (url, data) => {
   let text, response;
+  const requests = Alpine.store("requests");
+  requests.numRequests++;
+
   try {
     response = await fetch(url, {
       method: "POST",
@@ -30,6 +33,8 @@ const hxRequest = async (url, data) => {
     const toasts = Alpine.store("toasts");
     toasts.add("Could not make request");
     throw ex;
+  } finally {
+    requests.numRequests--;
   }
   handleToastsFromResponse(response);
 
@@ -53,15 +58,15 @@ const clickBookmark = async (event, blockId) => {
 document.addEventListener("alpine:init", () => {
   addBookmarkHtml = document.querySelector("#sidebar").outerHTML;
 
-  document.body.addEventListener("showToasts", (evt) => {
-    console.log("event listener", evt.detail);
-  });
-
   Alpine.store("global", {
     selectedIds: [],
     isSelected(id) {
       return this.selectedIds.includes(id);
     },
+  });
+
+  Alpine.store("requests", {
+    numRequests: 0,
   });
 
   Alpine.store("toasts", createToastsHandler());

@@ -5,6 +5,7 @@ Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
 
+import time
 from functools import partial
 from flask import json
 from app import app, db
@@ -53,10 +54,14 @@ def create_bookmark_view():
     bk.block.set_reference(bk)
     db.session.commit()
 
+    flash(Toast.success("New bookmark added"))
+
     return render_template('bookmark.html', block=bk.block)
 
 @app.route('/save', methods=['POST'])
 def save_bookmark_view():
+
+    time.sleep(0.4)
 
     data = request.json
 

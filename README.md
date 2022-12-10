@@ -1,6 +1,6 @@
-# flask_sqlite
-A Flask Application that demonstrates Flask-WTF and Flask-SQLAlchemy using a
-SQLite database.
+# Bookmarks
+
+WIP bookmarks thing
 
 ## Instructions
 As always ensure you create a virtual environment for this application and install
@@ -21,14 +21,3 @@ $ python run.py
 ## Init DB
 
 ```rm mydatabase.db; echo "from app.controller import init_db; init_db()" | python3 -```
-
-## Start frontend
-
-```
-cd notesapp
-yarn
-```
-
-```
-yarn start
-```

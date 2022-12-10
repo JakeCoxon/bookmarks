@@ -955,8 +955,12 @@ const parseCss = (str) => {
     }
   };
   const parseKv = (obj) => {
-    const key = current;
+    let key = current;
     advance();
+    if (key === "@keyframes") {
+      key = `${key} ${current}`;
+      advance();
+    }
     const value = parseValue();
     obj[key] = value;
   };
@@ -1056,28 +1060,40 @@ const createCssGenerator = () => {
       });
     },
     finalCss: () => {
-      const acc = [];
+      const cssLines = [];
 
-      const push = (parent, key, value) => {
+      const objectToLines = (obj, defer) => {
+        const f = (acc, [prop, value]) => (
+          typeof value === "object" ? defer.push([prop, value]) : acc.push(`${prop}: ${value};`),
+          acc
+        );
+        return Object.entries(obj).reduce(f, []);
+      };
+      const keyframeToCss = (obj) => {
+        const accumulate = (acc, [prop, value]) => (
+          typeof value === "object"
+            ? acc.push(`${prop} { ${keyframeToCss(value)} }`)
+            : acc.push(`${prop}: ${value};`),
+          acc
+        );
+        return Object.entries(obj).reduce(accumulate, []).join("\n");
+      };
+      const push = (parent, key, obj) => {
+        if (key.startsWith("@keyframes")) {
+          cssLines.push(`${key} { ${keyframeToCss(obj)} }\n`);
+          return;
+        }
         key = key.replace("&", parent);
 
         const defer = [];
-        const props = Object.entries(value).reduce(
-          (acc, [prop, value]) => (
-            typeof value === "object" ? defer.push([prop, value]) : acc.push(`${prop}: ${value};`),
-            acc
-          ),
-          []
-        );
-        acc.push(`${key} { ${props.join(" ")} }\n`);
+        const props = objectToLines(obj, defer);
+        cssLines.push(`${key} { ${props.join(" ")} }\n`);
         defer.forEach(([prop, value]) => push(key, prop, value));
       };
 
-      Object.entries(lookupMap).reduce((acc, [key, value]) => {
-        push("", key, value);
-        return acc;
-      }, []);
-      return acc.join("");
+      Object.entries(lookupMap).forEach(([key, value]) => push("", key, value));
+
+      return cssLines.join("");
     },
   };
 };

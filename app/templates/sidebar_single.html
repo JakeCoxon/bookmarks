@@ -45,9 +45,8 @@
         <textarea x-model="notes" class="darkinput talltextarea w-full"></textarea>
       </div>
 
-      <button class="darkbutton w-full" x-bind="trigger">
-        <div x-show="!isSubmitting">Save</div>
-        <div x-show="isSubmitting">Saving</div>
+      <button class="darkbutton w-full relative" x-bind="trigger">
+        <div>Save</div>
       </button>
     </form>
   </div>
