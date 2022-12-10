@@ -55,6 +55,13 @@ const clickBookmark = async (event, blockId) => {
   Alpine.morph(el, text);
 };
 
+document.body.addEventListener("customCssLoaded", () => {
+  for (const el of document.querySelectorAll("[x-cloak]")) {
+    console.log(el);
+    el.removeAttribute("x-cloak");
+  }
+});
+
 document.addEventListener("alpine:init", () => {
   addBookmarkHtml = document.querySelector("#sidebar").outerHTML;
 

@@ -365,3 +365,8 @@ video {
 [hidden] {
   display: none;
 }
+
+[x-cloak] { display: none !important; }
+body {
+  background: #191D24;
+}

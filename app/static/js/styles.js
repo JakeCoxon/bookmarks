@@ -1122,4 +1122,5 @@ fetch("/static/css/app.css")
       (document.head.appendChild(document.createElement("style")).innerHTML = css);
 
     insertCssIntoBody(cssGenerator.finalCss());
+    document.body.dispatchEvent(new CustomEvent("customCssLoaded"));
   });
