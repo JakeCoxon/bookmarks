@@ -4,13 +4,15 @@ htmx.defineExtension("alpine-morph", {
   },
   handleSwap: function (swapStyle, target, fragment) {
     if (swapStyle === "morph") {
-      if (fragment.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-        Alpine.morph(target, fragment.firstElementChild);
-        return [target];
-      } else {
-        Alpine.morph(target, fragment.outerHTML);
-        return [target];
-      }
+      const frag =
+        fragment.nodeType === Node.DOCUMENT_FRAGMENT_NODE
+          ? fragment.firstElementChild.outerHTML
+          : fragment.nodeName === "BODY"
+          ? fragment.firstElementChild.outerHTML
+          : fragment.outerHTML;
+
+      const promise = Alpine.morph(target, frag);
+      return { newElements: [target], promise };
     }
   },
 });

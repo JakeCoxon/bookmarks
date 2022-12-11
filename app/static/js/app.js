@@ -14,23 +14,13 @@ document.addEventListener("htmx:responseError", (evt) => {
 });
 
 document.addEventListener("htmx:beforeRequest", (evt) => {
-  console.log("Before request");
   const requests = Alpine.store("requests");
   requests.numRequests++;
 });
 
 document.addEventListener("htmx:afterRequest", (evt) => {
-  console.log("After request");
   const requests = Alpine.store("requests");
   requests.numRequests--;
-});
-
-document.addEventListener("htmx:historyRestore", (evt) => {
-  const els = document.querySelectorAll("[x-data]");
-  debugger;
-  for (const el of els) {
-  }
-  console.log("restore");
 });
 
 document.addEventListener("showToasts", (evt) => {
