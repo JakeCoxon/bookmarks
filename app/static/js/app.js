@@ -13,6 +13,26 @@ document.addEventListener("htmx:responseError", (evt) => {
   toasts.add({ html: responseErrorToast });
 });
 
+document.addEventListener("htmx:beforeRequest", (evt) => {
+  console.log("Before request");
+  const requests = Alpine.store("requests");
+  requests.numRequests++;
+});
+
+document.addEventListener("htmx:afterRequest", (evt) => {
+  console.log("After request");
+  const requests = Alpine.store("requests");
+  requests.numRequests--;
+});
+
+document.addEventListener("htmx:historyRestore", (evt) => {
+  const els = document.querySelectorAll("[x-data]");
+  debugger;
+  for (const el of els) {
+  }
+  console.log("restore");
+});
+
 document.addEventListener("showToasts", (evt) => {
   if (!Array.isArray(evt.detail.value)) return;
   const toasts = Alpine.store("toasts");

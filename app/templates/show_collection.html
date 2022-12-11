@@ -4,8 +4,12 @@
 
 <div key="collection" x-data="{ 'gridType': 'grid', 'collectionId': '{{collection.id}}' }">
   <div class="px-10 py-4 h-16 flex flex-row">
-    <div class="text-sm flex-1 self-center">
-      {{ collection.title }}
+    <div class="text-sm flex-1 self-center flex flex-row gap-2 items-center">
+      <a href="/" hx-boost="true">Dashboard</a>
+      <div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+      </svg></div>
+      <div>{{ collection.title }}</div>
     </div>
     <div class="text-sm">
       <div class="flex flex-row">
@@ -50,4 +54,8 @@
 
   </div>
 </div>
+{% endblock %}
+
+{% block sidebar %}
+{% include "sidebar_add.html" %}
 {% endblock %}

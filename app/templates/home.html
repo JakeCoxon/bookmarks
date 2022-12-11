@@ -12,8 +12,8 @@
     </div>
   </div>
 
-  <a href="/">Home</a>
-  <a href="/empty">Empty</a>
+  <a href="/" hx-boost="true">Home</a>
+  <a href="/empty" hx-boost="true">Empty</a>
 
   <div class="flex flex-row items-stretch">
     <div class="container">
@@ -34,7 +34,7 @@
 
           <tr>
             <td class="p-4">
-              <a class="cursor-pointer display-inline-block underline" href="/collection/{{col.id}}">
+              <a class="cursor-pointer display-inline-block underline" href="/collection/{{col.id}}" hx-boost="true">
                 {{col.title}}
               </a>
             </td>
