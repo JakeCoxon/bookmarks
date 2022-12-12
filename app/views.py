@@ -6,6 +6,7 @@ This file creates your application.
 """
 
 import time
+import flask
 from functools import partial
 from flask import json
 from app import app, db
@@ -16,12 +17,6 @@ from app.controller import create_bookmark
 from app import controller
 from datetime import datetime
 from sqlalchemy import func
-
-def htmx(content):
-    is_hx = request.headers.get('HX-Request')
-    if is_hx:
-        return content
-    return render_template('html_layout.html', content=Markup(content))
 
 @app.route('/')
 def home():
@@ -142,6 +137,15 @@ def sidebar():
         return render_template('sidebar_single.html', block=block, form=form)
     return render_template('sidebar_multi.html', blocks=blocks)
 
+
+@app.route('/create-collection', methods=['POST'])
+def create_collection():
+    col = Collection(title="New collection")
+    db.session.add(col)
+    db.session.commit()
+    flash(Toast.success("New collection created"))
+    return htmx_redirect(f"/collection/{col.id}", code=302)
+
 @app.route('/collection/<collection_id>')
 def show_collection(collection_id):
     collection = db.session.query(Collection).get(collection_id)
@@ -252,6 +256,19 @@ def add_header(response):
     else:
         response.headers['Cache-Control'] = 'public, max-age=600'
     return response
+
+
+def htmx(content):
+    is_hx = request.headers.get('HX-Request')
+    if is_hx:
+        return content
+    return render_template('html_layout.html', content=Markup(content))
+
+
+def htmx_redirect(url):
+    resp = flask.Response("")
+    resp.headers['HX-Location'] = f"/collection/{col.id}"
+    return resp
 
 @app.after_request
 def add_toasts(response):

@@ -12,9 +12,6 @@
     </div>
   </div>
 
-  <a href="/" hx-boost="true">Home</a>
-  <a href="/empty" hx-boost="true">Empty</a>
-
   <div class="flex flex-row items-stretch">
     <div class="container">
       
@@ -24,7 +21,7 @@
         <div class="h-12"></div>
 
         <div>
-          <button class="darkbutton">Create a new collection</button>
+          <button class="darkbutton" hx-post="/create-collection">Create a new collection</button>
         </div>
         <div class="h-4"></div>
 

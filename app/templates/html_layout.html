@@ -16,7 +16,7 @@
     <script src="/static/js/app.js"></script>
     {% block css %} {% endblock%}
   </head>
-  <body>
+  <body hx-target="#pageroot" hx-ext="alpine-morph,bookmark-custom-swap" hx-swap="morph">
 
     {% include "toasts.html" %}
 

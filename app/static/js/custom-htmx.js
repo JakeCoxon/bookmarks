@@ -1,3 +1,5 @@
+// From https://unpkg.com/htmx.org@1.8.4/dist/htmx.js
+
 //AMD insanity
 (function (root, factory) {
   //@ts-ignore
