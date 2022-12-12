@@ -66,7 +66,7 @@ class Block(db.Model):
         #     self.gallery = reference
 
     ancestor_collection_id = db.Column(db.String(255), db.ForeignKey("collections.id"))
-
+    collection = db.relationship('Collection', backref=db.backref('blocks', lazy='dynamic'))
 
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
@@ -82,8 +82,6 @@ class Collection(db.Model):
     __tablename__ = 'collections'
     id = db.Column(db.String(255), primary_key=True, default=default_id('cl_'))
     title = db.Column(db.String(1024))
-
-    blocks = db.relationship('Block', backref=db.backref('collection'), lazy='dynamic')
 
     owner = db.Column(db.String(255), db.ForeignKey("users.id"))
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)

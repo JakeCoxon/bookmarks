@@ -23,8 +23,7 @@ def home():
 
     query = (
         db.session.query(Collection, func.count(Block.id))
-        .select_from(Block)
-        .join(Block.collection)
+        .outerjoin(Block)
         .group_by(Collection)
     ).all()
 
@@ -144,7 +143,7 @@ def create_collection():
     db.session.add(col)
     db.session.commit()
     flash(Toast.success("New collection created"))
-    return htmx_redirect(f"/collection/{col.id}", code=302)
+    return htmx_redirect(f"/collection/{col.id}")
 
 @app.route('/collection/<collection_id>')
 def show_collection(collection_id):
@@ -267,7 +266,7 @@ def htmx(content):
 
 def htmx_redirect(url):
     resp = flask.Response("")
-    resp.headers['HX-Location'] = f"/collection/{col.id}"
+    resp.headers['HX-Location'] = url
     return resp
 
 @app.after_request
