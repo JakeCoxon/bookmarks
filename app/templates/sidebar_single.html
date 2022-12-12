@@ -1,3 +1,5 @@
+{% from "render_field.html" import render_field %}
+
 <div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar">
 
 {% if block.bookmark %}
@@ -10,31 +12,9 @@
   </div>
 {% endif %}
 
-{% macro render_field(field) %}
-
-  {% if field.widget.input_type == 'hidden' %}{{field(class="darkinput w-full")}}
-  {% else %}
-
-    <div class="my-2">
-      <div class="mb-1">{{ field.label }}</div>
-      {{field(class="darkinput w-full")}}
-    
-    {% if field.errors %}
-      <ul class="errors">
-      {% for error in field.errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-    </dd>
-    </div>
-  {% endif %}
-{% endmacro %}
-
   <div class="py-4 px-6">
-    <form key="{{block.id}}" class="editform" x-data='createForm({
-      "initialValues": {{form.data|tojson}}
-    })'
+    <form key="{{block.id}}" class="editform"
+      x-data='createForm({ "initialValues": {{form.data|tojson}} })'
       method="POST" action="/save" hx-boost="true" 
       hx-swap="bookmarkCustomSwap" hx-push-url="false"
       x-bind="form">
@@ -42,6 +22,7 @@
       {{ render_field(form.id) }}
       {{ render_field(form.collection_id) }}
       
+      <div class="flex flex-col gap-2">
       {% if block.bookmark %}
 
         {{ render_field(form.url) }}
@@ -57,6 +38,7 @@
         {{ render_field(form.contents) }}
 
       {% endif %}
+      </div>
 
       <button class="darkbutton w-full relative" x-bind="trigger">
         <div>Save</div>

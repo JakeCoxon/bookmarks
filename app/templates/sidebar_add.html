@@ -1,3 +1,5 @@
+{% from "render_field.html" import render_field %}
+
 <div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar">
     
   <div class="px-6 py-4 h-16 flex items-center text-sm">
@@ -6,36 +8,21 @@
 
   <div class="h-full flex flex-col justify-center p-2">
     <div class="mx-auto w-full">
-      
-      <form x-data="
-          createForm({
-            'initialValues': {
-              'collection_id': '{{collection.id}}',
-              'url': '',
-              'title': '',
-              'desc': ''
-            }
-          })"
+
+      <form x-data='createForm({ "initialValues": {{add_form.data|tojson}} })'
           method="POST" action="/create" hx-boost="true" 
           hx-swap="bookmarkCustomSwap" hx-push-url="false"
           x-bind="form"
           class="p-4 rounded-md">
-          <input type="hidden" name="collection_id" x-model="collection_id" />
-        <div class="flex flex-col gap-4">
-          <div>
-            <div class="text-sm mb-1">Add a new URL</div>
-            <input type="text" name="url" x-model="url" class="urlinput w-full" placeholder="https://example.com..."/>
-          </div>
-
-          <div>
-            <div class="text-sm mb-1">Title</div>
-            <input type="text" name="title" x-model="title" class="darkinput w-full" placeholder=""/>
-          </div>
-          <div>
-            <div class="text-sm mb-1">Description</div>
-            <input type="text" name="desc" x-model="desc" class="darkinput w-full" placeholder=""/>
-          </div>
           
+          {{ render_field(add_form.collection_id) }}
+
+        <div class="flex flex-col gap-4">
+
+          {{ render_field(add_form.url, placeholder="https://example.com...") }}
+          {{ render_field(add_form.title) }}
+          {{ render_field(add_form.desc) }}
+
           <div class="w-g-10 mx-auto">
             <button class="darkbutton w-full" type="submit" id="clicker" x-bind="trigger">
               <div>Add to collection</div>

@@ -10,7 +10,7 @@ from functools import partial
 from flask import json
 from app import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response, get_flashed_messages, Markup
-from app.forms import UserForm, BookmarkForm, NoteForm
+from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
 from app.models import User, Collection, Block, Bookmark
 from app.controller import create_bookmark
 from app import controller
@@ -158,9 +158,12 @@ def show_collection(collection_id):
 
     groups = [(group, group_to_label(group), list(blocks)) 
         for group, blocks in group_by_date(query)]
+        
+    add_form = AddBookmarkForm(data={'collection_id': collection_id})
 
     return htmx(render_template('show_collection.html', 
-        collection=collection, blocks=blocks, groups=groups, query=query))
+        collection=collection, blocks=blocks, groups=groups, query=query,
+        add_form=add_form))
 
 def group_to_label(group):
     return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]

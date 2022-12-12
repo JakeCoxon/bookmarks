@@ -55,6 +55,15 @@ ColorField = RadioField('Color',
         ('gradient5', ''),
     ])
 
+class AddBookmarkForm(FlaskForm):
+
+    Meta = AlpineMeta
+
+    collection_id = HiddenField('')
+    url = StringField('Add a new URL')
+    title = StringField('Title')
+    desc = StringField('Description')
+
 class BookmarkForm(FlaskForm):
 
     Meta = AlpineMeta
