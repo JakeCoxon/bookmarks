@@ -1001,7 +1001,7 @@
               var result = ext.handleSwap(swapStyle, target, fragment, settleInfo);
               //@jakecoxon: Assign promise to settleInfo
               var newElements = result;
-              if (result.promise) {
+              if (result && result.promise) {
                 settleInfo.promise = result.promise;
                 newElements = result.newElements;
               }

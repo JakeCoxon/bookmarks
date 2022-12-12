@@ -11,28 +11,37 @@
 {% endif %}
 
 {% macro render_field(field) %}
-  <div class="my-2">
-    <div class="mb-1">{{ field.label }}</div>
-    {{field(class="darkinput w-full")}}
-  
-  {% if field.errors %}
-    <ul class="errors">
-    {% for error in field.errors %}
-      <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
+
+  {% if field.widget.input_type == 'hidden' %}{{field(class="darkinput w-full")}}
+  {% else %}
+
+    <div class="my-2">
+      <div class="mb-1">{{ field.label }}</div>
+      {{field(class="darkinput w-full")}}
+    
+    {% if field.errors %}
+      <ul class="errors">
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+    </dd>
+    </div>
   {% endif %}
-  </dd>
-  </div>
 {% endmacro %}
 
   <div class="py-4 px-6">
     <form key="{{block.id}}" class="editform" x-data='createForm({
-      "onSubmit": saveBookmark,
       "initialValues": {{form.data|tojson}}
     })'
+      method="POST" action="/save" hx-boost="true" 
+      hx-swap="bookmarkCustomSwap" hx-push-url="false"
       x-bind="form">
 
+      {{ render_field(form.id) }}
+      {{ render_field(form.collection_id) }}
+      
       {% if block.bookmark %}
 
         {{ render_field(form.url) }}

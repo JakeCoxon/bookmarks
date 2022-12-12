@@ -124,27 +124,31 @@ const addBookmark = async (form) => {
   Alpine.morph(newEl, text);
 };
 
-// Called via createForm
-const saveBookmark = async (form) => {
-  const r = await htmx.ajax("POST", "/save", {
-    values: form.getData(),
-    swap: "none",
-    // handler: (...args) => {
-    //   // debugger;
-    //   // const blockEls = document.querySelectorAll(`[data-block-id="${data.id}"]`);
-    //   // for (const el of blockEls) {
-    //   //   Alpine.morph(el, text);
-    //   // }
-    // },
-  });
-  console.log(r);
-  // const text = await hxRequest(`/save`, data);
+htmx.defineExtension("bookmark-custom-swap", {
+  isInlineSwap: function (swapStyle) {
+    return swapStyle === "bookmarkCustomSwap";
+  },
+  handleSwap: function (swapStyle, target, fragment) {
+    if (swapStyle === "bookmarkCustomSwap") {
+      const frag = fragment.nodeName === "BODY" ? fragment.firstElementChild : fragment;
+      const swapBlockId = frag.getAttribute("sx-swap-blocks");
+      if (typeof swapBlockId === "string") {
+        return swapBlocks(target, frag, swapBlockId);
+      }
+      throw new Error("Unsupported custom swap function");
+    }
+  },
+});
 
-  // let el = document.querySelector("#added");
-  // const newEl = document.createElement("div");
-  // el.prepend(newEl);
-
-  // Alpine.morph(newEl, text);
+const swapBlocks = (target, fragment, blockId) => {
+  const text = fragment.outerHTML;
+  const blockEls = target.querySelectorAll(`[data-block-id="${blockId}"]`);
+  const promises = [];
+  for (const el of blockEls) {
+    promises.push(Alpine.morph(el, text));
+  }
+  const promise = Promise.all(promises);
+  return { newElements: [target], promise };
 };
 
 const createForm = ({ initialValues, onSubmit }) => {
@@ -161,13 +165,8 @@ const createForm = ({ initialValues, onSubmit }) => {
     },
 
     form: {
-      async ["@submit.prevent"]() {
-        this.isSubmitting = true;
-        try {
-          await this.onSubmit(this);
-        } finally {
-          this.isSubmitting = false;
-        }
+      async ["@submit"](ev) {
+        // Nothing for now
       },
     },
 
