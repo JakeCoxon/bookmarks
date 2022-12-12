@@ -41,7 +41,7 @@ const clickBookmark = async (event, blockId) => {
       store.selectedIds.push(blockId);
     }
   } else {
-    if (store.selectedIds.includes(blockId)) return;
+    if (store.selectedIds.length === 1 && store.selectedIds[0] === blockId) return;
     store.selectedIds = [blockId];
   }
 
@@ -130,15 +130,27 @@ htmx.defineExtension("bookmark-custom-swap", {
   },
   handleSwap: function (swapStyle, target, fragment) {
     if (swapStyle === "bookmarkCustomSwap") {
+      console.log("bookmarkCustomSwap", fragment);
+
       const frag = fragment.nodeName === "BODY" ? fragment.firstElementChild : fragment;
       const swapBlockId = frag.getAttribute("sx-swap-blocks");
+      const swapTodayAttr = frag.getAttribute("sx-swap-today");
       if (typeof swapBlockId === "string") {
         return swapBlocks(target, frag, swapBlockId);
+      } else if (typeof swapTodayAttr === "string") {
+        return swapToday(target, frag);
       }
-      throw new Error("Unsupported custom swap function");
+      throw new Error("Missing custom swap function");
     }
   },
 });
+
+const swapToday = (target, fragment) => {
+  const text = fragment.outerHTML;
+  const el = target.querySelector(`#group-day`) || target.querySelector(`#group-empty`);
+  const promise = Alpine.morph(el, text);
+  return { newElements: [target], promise };
+};
 
 const swapBlocks = (target, fragment, blockId) => {
   const text = fragment.outerHTML;

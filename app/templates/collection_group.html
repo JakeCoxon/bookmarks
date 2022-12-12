@@ -1,0 +1,15 @@
+<div id="group-{{group}}" sx-swap-today>
+
+    <h2 class="text-sm mb-2">
+      {{label}}
+    </h2>
+
+    <div class="grid" :class="'grid--' + gridType">
+    {% for block in blocks %}
+      {% include 'bookmark.html' %}
+    {% endfor %}
+    </div>
+
+    <div class="h-20"></div>
+
+</div>

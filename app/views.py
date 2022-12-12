@@ -42,8 +42,6 @@ def home():
 
 @app.route('/empty')
 def home_empty():
-
-
     return htmx(render_template('home.html', collections=[]))
 
 @app.route('/users')
@@ -55,9 +53,10 @@ def show_users():
 @app.route('/create', methods=['POST'])
 def create_bookmark_view():
 
-    data = request.json
+    data = request.form
 
-    col = Collection.query.get(data['collection_id'])
+    collection_id = data['collection_id']
+    col = Collection.query.get(collection_id)
 
     title = data.get('title')
     bk = create_bookmark(title=title, description=data['desc'], 
@@ -71,7 +70,27 @@ def create_bookmark_view():
 
     flash(Toast.success("New bookmark added"))
 
-    return render_template('bookmark.html', block=bk.block)
+    # Just query everything for now because of laziness
+    # Ideally we would make sure this is the exact same filter
+    # as the group_by_date function
+    query = (
+        db.session.query(Block).
+        filter_by(ancestor_collection_id=collection_id).
+        outerjoin(Collection, Collection.id == Block.id).
+        outerjoin(Bookmark, Bookmark.id == Block.id).
+        order_by(Block.created_at.desc())
+    )
+
+    blocks = query.all()
+
+    groups = [(group, group_to_label(group), list(blocks)) 
+        for group, blocks in group_by_date(query)]
+    today_blocks = groups[0][2]
+    print(today_blocks)
+    if groups[0][0] != 'day': today_blocks = [] # probably won't happen
+
+    return render_template('collection_group.html',
+        group='day', label="Today", blocks=today_blocks)
 
 @app.route('/save', methods=['POST'])
 def save_bookmark_view():
@@ -139,7 +158,6 @@ def show_collection(collection_id):
 
     groups = [(group, group_to_label(group), list(blocks)) 
         for group, blocks in group_by_date(query)]
-    print(blocks)
 
     return htmx(render_template('show_collection.html', 
         collection=collection, blocks=blocks, groups=groups, query=query))
@@ -154,7 +172,6 @@ def group_by_date(blocks):
     day = 60 * 60 * 24
     def groupfunc(block):
         diff = (now - block.created_at).total_seconds()
-        print(diff)
 
         if diff < day: return "day"
         elif diff < day * 7: return "week"

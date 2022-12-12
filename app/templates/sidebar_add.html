@@ -9,29 +9,31 @@
       
       <form x-data="
           createForm({
-            'onSubmit': addBookmark,
             'initialValues': {
               'collection_id': '{{collection.id}}',
               'url': '',
               'title': '',
               'desc': ''
             }
-          })" 
+          })"
+          method="POST" action="/create" hx-boost="true" 
+          hx-swap="bookmarkCustomSwap" hx-push-url="false"
           x-bind="form"
           class="p-4 rounded-md">
+          <input type="hidden" name="collection_id" x-model="collection_id" />
         <div class="flex flex-col gap-4">
           <div>
             <div class="text-sm mb-1">Add a new URL</div>
-            <input type="text" x-model="url" class="urlinput w-full" placeholder="https://example.com..."/>
+            <input type="text" name="url" x-model="url" class="urlinput w-full" placeholder="https://example.com..."/>
           </div>
 
           <div>
             <div class="text-sm mb-1">Title</div>
-            <input type="text" x-model="title" class="darkinput w-full" placeholder=""/>
+            <input type="text" name="title" x-model="title" class="darkinput w-full" placeholder=""/>
           </div>
           <div>
             <div class="text-sm mb-1">Description</div>
-            <input type="text" x-model="desc" class="darkinput w-full" placeholder=""/>
+            <input type="text" name="desc" x-model="desc" class="darkinput w-full" placeholder=""/>
           </div>
           
           <div class="w-g-10 mx-auto">
