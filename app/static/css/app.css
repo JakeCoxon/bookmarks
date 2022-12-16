@@ -60,6 +60,18 @@ textarea::placeholder {
   }
 }
 
+.modal {
+  &-backdrop {
+    composes: fixed pin flex flex-row items-center justify-center;
+    background: rgba(0, 0, 0, 0.8);
+  }
+  &-content {
+    composes: bg-gray-800 shadow-lg;
+    width: 600px;
+    height: 400px;
+  }
+}
+
 pre {
   word-wrap: break-word;
   white-space: break-spaces;

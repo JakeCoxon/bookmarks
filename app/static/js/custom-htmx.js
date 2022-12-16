@@ -3191,6 +3191,10 @@
         }
         ajaxHelper("GET", redirectPath, swapSpec).then(function () {
           pushUrlIntoHistory(redirectPath);
+          //@jakecoxon: added this
+          triggerEvent(getDocument().body, "htmx:pushedIntoHistory", {
+            path: redirectPath,
+          });
         });
         return;
       }

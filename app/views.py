@@ -92,14 +92,14 @@ def save_bookmark_view():
 
     return render_template('bookmark.html', block=bl)
 
-@app.route('/sidebar', methods=['POST'])
+@app.route('/collection/<collection_id>/sidebar', methods=['POST'])
 @htmx_required
-def sidebar():
+def sidebar(collection_id):
 
     time.sleep(0.1)
     ids = request.form.getlist('ids')
 
-    query = query_multiple_ids(ids)
+    query = query_multiple_ids(collection_id, ids)
     blocks = query.all()
     if len(blocks) == 1:
         block = blocks[0]
@@ -107,7 +107,7 @@ def sidebar():
         form = FormType.from_block(block, formdata=None)
 
         return render_template('sidebar_single.html', block=block, form=form)
-    return render_template('sidebar_multi.html', blocks=blocks)
+    return render_template('sidebar_multi.html', blocks=blocks, collection_id=collection_id)
 
 @app.route('/block/<block_id>/pinned', methods=['POST'])
 @htmx_required
@@ -129,6 +129,27 @@ def set_pinned(block_id):
     if toast: flash(toast)
 
     return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
+
+@app.route('/collection/<collection_id>/delete-multi', methods=['POST'])
+@htmx_required
+def delete_block_multiple(collection_id):
+
+    ids = request.form.getlist('ids')
+    blocks = query_multiple_ids(collection_id, ids)
+
+    print(ids)
+
+    if not request.form.get('confirm'):
+        return render_template('modal_confirm_delete.html',
+            blocks=blocks, collection_id=collection_id)
+
+
+    for bl in blocks:
+        bl.deleted_at = datetime.now()
+    
+    db.session.commit()
+    flash(Toast.success(f"Deleted {blocks.count()} blocks"))
+    return htmx_redirect(f'/collection/{collection_id}')
 
 @app.route('/block/<block_id>/delete', methods=['POST'])
 @htmx_required

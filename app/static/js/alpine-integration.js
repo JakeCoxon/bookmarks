@@ -1,6 +1,16 @@
 const sendErrorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Couldn't send request!</div>`;
 const responseErrorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Something went wrong!</div>`;
 
+document.addEventListener("alpine:init", () => {
+  Alpine.store("requests", {
+    numRequests: 0,
+  });
+
+  Alpine.store("toasts", createToastsHandler());
+
+  Alpine.store("modal", createModalHandler());
+});
+
 document.addEventListener("htmx:sendError", (evt) => {
   const toasts = Alpine.store("toasts");
   toasts.add({ html: sendErrorToast });
@@ -82,6 +92,35 @@ const createToastsHandler = () => {
   };
 };
 
+const createModalHandler = () => {
+  return {
+    showModal: false,
+    modalElement: null,
+    init() {
+      document.addEventListener("htmx:pushedIntoHistory", () => {
+        this.showModal = false;
+      });
+      document.addEventListener("htmx:replacedInHistory", () => {
+        this.showModal = false;
+      });
+    },
+    openModal() {
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+    },
+  };
+};
+
+const customMorphSettings = {
+  updating(el, toEl, childrenOnly, skip) {
+    if (toEl.getAttribute && toEl.getAttribute("x-skip-morph") !== null) {
+      skip();
+    }
+  },
+};
+
 htmx.defineExtension("alpine-morph", {
   isInlineSwap: function (swapStyle) {
     return swapStyle === "morph";
@@ -95,13 +134,7 @@ htmx.defineExtension("alpine-morph", {
           ? fragment.firstElementChild.outerHTML
           : fragment.outerHTML;
 
-      const result = Alpine.morph(target, frag, {
-        updating(el, toEl, childrenOnly, skip) {
-          if (toEl.getAttribute && toEl.getAttribute("x-skip-morph") !== null) {
-            skip();
-          }
-        },
-      });
+      const result = Alpine.morph(target, frag, customMorphSettings);
       return [result];
     }
   },

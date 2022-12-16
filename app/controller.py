@@ -52,9 +52,10 @@ def query_collections_and_block_count():
         .group_by(Collection)
     )
 
-def query_multiple_ids(ids):
+def query_multiple_ids(collection_id, ids):
     return (
         db.session.query(Block).
+        filter_by(ancestor_collection_id=collection_id).
         filter(Block.id.in_(ids)).
         outerjoin(Bookmark, Bookmark.id == Block.id)
     )

@@ -10,14 +10,13 @@
     <script src="/static/js/styles.js"></script>
     <link rel="stylesheet" href="/static/css/reset.css" />
     <script src="/static/js/custom-htmx.js"></script>
-    <script src="/static/js/htmx-alpine.js"></script>
     <script defer src="/static/js/custom-alpine-morph.js"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.js"></script>
-    <script src="/static/js/app.js"></script>
+    <script defer src="/static/js/alpine-3.10.5.js"></script>
     <script src="/static/js/alpine-integration.js"></script>
+    <script src="/static/js/app.js"></script>
     {% block css %} {% endblock%}
   </head>
-  <body hx-target="#pageroot" hx-ext="alpine-morph,bookmark-custom-swap" hx-swap="morph">
+  <body hx-target="#pageroot" hx-ext="alpine-morph,bookmark-custom-swap" hx-swap="bookmarkCustomSwap">
 
     {% include "toasts.html" %}
 
@@ -27,6 +26,15 @@
 
     {{content}}
 
+    <div x-data="$store.modal">
+      <div x-show="showModal" class="modal-backdrop"
+          data-no-click-through
+          @keyup.escape.window="showModal = false">
+        <div style="width:min-content; height:min-content" @click.away="showModal = false">
+          <div id="modal-content"></div>
+        </div>
+      </div>
+    </div>
     
     {% block js %} {% endblock%}
   </body>

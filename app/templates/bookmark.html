@@ -5,7 +5,7 @@
   }"
   data-block-id="{{block.id}}"
   :data-selected="$store.global.isSelected('{{block.id}}')"
-  x-on:click="clickBookmark($event, '{{block.id}}')"
+  x-on:click="clickBookmark($event, '{{block.ancestor_collection_id}}', '{{block.id}}')"
   sx-swap-blocks="{{block.id}}"
 >
 

@@ -1,4 +1,4 @@
-const clickBookmark = async (event, blockId) => {
+const clickBookmark = async (event, collectionId, blockId) => {
   const store = Alpine.store("global");
 
   if (event.metaKey) {
@@ -12,7 +12,7 @@ const clickBookmark = async (event, blockId) => {
     store.selectedIds = [blockId];
   }
 
-  await htmx.ajax("POST", "/sidebar", {
+  await htmx.ajax("POST", `/collection/${collectionId}/sidebar`, {
     target: "#dynamicsidebar",
     swap: "morph",
     values: {
@@ -40,12 +40,6 @@ document.addEventListener("alpine:init", () => {
     },
   });
 
-  Alpine.store("requests", {
-    numRequests: 0,
-  });
-
-  Alpine.store("toasts", createToastsHandler());
-
   const store = Alpine.store("global");
 
   const isClickBody = (el) => {
@@ -71,6 +65,8 @@ document.addEventListener("alpine:init", () => {
   });
 });
 
+const myGlobal = this;
+
 htmx.defineExtension("bookmark-custom-swap", {
   isInlineSwap: function (swapStyle) {
     return swapStyle === "bookmarkCustomSwap";
@@ -80,22 +76,49 @@ htmx.defineExtension("bookmark-custom-swap", {
       console.log("bookmarkCustomSwap", fragment);
 
       const frag = fragment.nodeName === "BODY" ? fragment.firstElementChild : fragment;
+      const targetResponse = frag.getAttribute("sx-target-response");
+      const custom = frag.getAttribute("sx-custom");
       const swapBlockId = frag.getAttribute("sx-swap-blocks");
       const swapTodayAttr = frag.getAttribute("sx-swap-today");
       if (typeof swapBlockId === "string") {
         return swapBlocks(target, frag, swapBlockId);
       } else if (typeof swapTodayAttr === "string") {
         return swapToday(target, frag);
+      } else if (typeof targetResponse === "string") {
+        return swapTarget(target, targetResponse, frag);
+      } else if (typeof custom === "string") {
+        const func = eval(custom);
+        if (!func) throw new Error(`Missing function '${custom}'`);
+        return func(target, frag);
       }
       throw new Error("Missing custom swap function");
     }
   },
 });
 
+const openModal = (elt, fragment) => {
+  const text = fragment.outerHTML;
+  const modal = Alpine.store("modal");
+  const target = modal.$el.querySelector("#modal-content");
+  if (!target) throw new Error(`Missing modal element`);
+  const result = Alpine.morph(target, text, customMorphSettings);
+  result.setAttribute("id", "modal-content");
+  modal.showModal = true;
+  return [result];
+};
+
+const swapTarget = (parent, targetSelector, fragment) => {
+  const text = fragment.outerHTML;
+  const target = document.querySelector(targetSelector);
+  if (!target) throw new Error(`Missing target '${targetSelector}'`);
+  const result = Alpine.morph(target, text, customMorphSettings);
+  return [result];
+};
+
 const swapToday = (target, fragment) => {
   const text = fragment.outerHTML;
   const el = target.querySelector(`#group-day`) || target.querySelector(`#group-empty`);
-  const result = Alpine.morph(el, text);
+  const result = Alpine.morph(el, text, customMorphSettings);
   return [result];
 };
 
@@ -104,7 +127,7 @@ const swapBlocks = (target, fragment, blockId) => {
   const blockEls = target.querySelectorAll(`[data-block-id="${blockId}"]`);
   const els = [];
   for (const el of blockEls) {
-    els.push(Alpine.morph(el, text));
+    els.push(Alpine.morph(el, text), customMorphSettings);
   }
   return els;
 };

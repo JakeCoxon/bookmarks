@@ -10,14 +10,20 @@
     <div>{{blocks|length}} selected</div>
     <div class="h-4"></div>
 
-    <div class="flex flex-col gap-2">
-      <div><button class="darkbutton w-full text-left">Remove from collection</button></div>
-      <div><button class="darkbutton w-full text-left">Move to another collection</button></div>
-      <div><button class="darkbutton w-full text-left">Copy to another collection</button></div>
-      <div><button class="darkbutton w-full text-left">Add tags</button></div>
-      <div><button class="darkbutton w-full text-left">Remove tags</button></div>
-      <div><button class="darkbutton w-full text-left">Delete</button></div>
-    </div>
+    <form>
+      {% for bl in blocks %}
+      <input type="hidden" name="ids" value="{{bl.id}}" />
+      {% endfor %}
+
+      <div class="flex flex-col gap-2">
+        <div><button class="darkbutton w-full text-left">Remove from collection</button></div>
+        <div><button class="darkbutton w-full text-left">Copy to another collection</button></div>
+        <div><button class="darkbutton w-full text-left">Manage tags</button></div>
+        <div>
+          <button class="darkbutton w-full text-left" hx-post="/collection/{{collection_id}}/delete-multi">Delete</button>
+        </div>
+      </div>
+    </form>
 
   </div>
 
