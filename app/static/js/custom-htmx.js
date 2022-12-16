@@ -1000,13 +1000,7 @@
           for (var i = 0; i < extensions.length; i++) {
             var ext = extensions[i];
             try {
-              var result = ext.handleSwap(swapStyle, target, fragment, settleInfo);
-              //@jakecoxon: Assign promise to settleInfo
-              var newElements = result;
-              if (result && result.promise) {
-                settleInfo.promise = result.promise;
-                newElements = result.newElements;
-              }
+              var newElements = ext.handleSwap(swapStyle, target, fragment, settleInfo);
               if (newElements) {
                 if (typeof newElements.length !== "undefined") {
                   // if handleSwap returns an array (like) of elements, we handle them
@@ -2153,13 +2147,7 @@
               window.document.title = title;
             }
           }
-          //@jakecoxon: Handle async
-          // @ts-ignore
-          // swapInnerHTML(historyElement, fragment, settleInfo);
           swap("morph", historyElement, historyElement, fragment, settleInfo);
-          if (settleInfo.promise) await settleInfo.promise;
-
-          //
 
           settleImmediately(settleInfo.tasks);
           currentPathForHistory = path;
@@ -2183,11 +2171,7 @@
         var fragment = makeFragment(cached.content);
         var historyElement = getHistoryElement();
         var settleInfo = makeSettleInfo(historyElement);
-        //@jakecoxon: Replaced this and handle async
-        // swapInnerHTML(historyElement, fragment, settleInfo);
         swap("morph", historyElement, historyElement, fragment, settleInfo);
-        if (settleInfo.promise) await settleInfo.promise;
-        //
 
         settleImmediately(settleInfo.tasks);
         document.title = cached.title;
@@ -3572,8 +3556,7 @@
       });
       window.onpopstate = async function (event) {
         if (event.state && event.state.htmx) {
-          //@jakecoxon: Handle async
-          await restoreHistory();
+          restoreHistory();
           forEach(restoredElts, function (elt) {
             triggerEvent(elt, "htmx:restored", {
               document: getDocument(),

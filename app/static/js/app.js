@@ -64,30 +64,18 @@ document.addEventListener("alpine:init", () => {
     return true;
   };
 
-  document.body.addEventListener("click", (event) => {
+  document.body.addEventListener("click", async (event) => {
     if (isClickBody(event.target)) {
       if (store.selectedIds.length == 0) return;
 
       store.selectedIds = [];
       console.log("Deselect");
       let el = document.querySelector("#sidebar");
-      Alpine.morph(el, addBookmarkHtml);
+      const result = Alpine.morph(el, addBookmarkHtml);
+      htmx.process(result);
     }
   });
 });
-
-// Called via createForm
-const addBookmark = async (form) => {
-  const data = form.getData();
-
-  const text = await spartanJsonPost(`/create`, data);
-
-  let el = document.querySelector("#added");
-  const newEl = document.createElement("div");
-  el.prepend(newEl);
-
-  Alpine.morph(newEl, text);
-};
 
 htmx.defineExtension("bookmark-custom-swap", {
   isInlineSwap: function (swapStyle) {

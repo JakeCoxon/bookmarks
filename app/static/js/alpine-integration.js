@@ -48,9 +48,6 @@ const createForm = ({ initialValues, onSubmit }) => {
       },
     },
 
-    // let el = document.querySelector("#added");
-    // const newEl = document.createElement("div");
-    // el.prepend(newEl);
     trigger: {
       [":disabled"]() {
         return this.isSubmitting;

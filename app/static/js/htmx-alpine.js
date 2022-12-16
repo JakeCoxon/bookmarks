@@ -11,8 +11,8 @@ htmx.defineExtension("alpine-morph", {
           ? fragment.firstElementChild.outerHTML
           : fragment.outerHTML;
 
-      const promise = Alpine.morph(target, frag);
-      return { newElements: [target], promise };
+      const result = Alpine.morph(target, frag);
+      return [result];
     }
   },
 });
