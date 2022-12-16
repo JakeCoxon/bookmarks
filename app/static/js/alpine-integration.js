@@ -1,48 +1,33 @@
-const handleToastsFromResponse = (response) => {
-  const triggerJson = response.headers.get("HX-Trigger");
-  if (!triggerJson) return;
+const sendErrorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Couldn't send request!</div>`;
+const responseErrorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Something went wrong!</div>`;
 
-  const trigger = JSON.parse(triggerJson);
-  Object.entries(trigger).forEach(([name, value]) => {
-    const toasts = Alpine.store("toasts");
-    value.forEach((html) => {
-      toasts.add({ html });
-    });
-  });
-};
+document.addEventListener("htmx:sendError", (evt) => {
+  const toasts = Alpine.store("toasts");
+  toasts.add({ html: sendErrorToast });
+});
 
-const errorToast = `<div class="bg-chestnut-600 rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer">Something went wrong!</div>`;
+document.addEventListener("htmx:responseError", (evt) => {
+  const toasts = Alpine.store("toasts");
+  toasts.add({ html: responseErrorToast });
+});
 
-const spartanJsonPost = async (url, data) => {
-  let text, response;
+document.addEventListener("htmx:beforeRequest", (evt) => {
   const requests = Alpine.store("requests");
   requests.numRequests++;
+});
 
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "HX-Request": "true",
-      },
-      body: JSON.stringify(data),
-    });
-    text = await response.text();
-    if (!response.ok) {
-      throw new Error("Request failed");
-    }
-  } catch (ex) {
-    console.error(ex);
-    const toasts = Alpine.store("toasts");
-    toasts.add({ html: errorToast });
-    throw ex;
-  } finally {
-    requests.numRequests--;
-  }
-  handleToastsFromResponse(response);
+document.addEventListener("htmx:afterRequest", (evt) => {
+  const requests = Alpine.store("requests");
+  requests.numRequests--;
+});
 
-  return text;
-};
+document.addEventListener("showToasts", (evt) => {
+  if (!Array.isArray(evt.detail.value)) return;
+  const toasts = Alpine.store("toasts");
+  evt.detail.value.forEach((html) => {
+    toasts.add({ html });
+  });
+});
 
 const createForm = ({ initialValues, onSubmit }) => {
   return {
@@ -58,16 +43,14 @@ const createForm = ({ initialValues, onSubmit }) => {
     },
 
     form: {
-      async ["@submit.prevent"]() {
-        this.isSubmitting = true;
-        try {
-          await this.onSubmit(this);
-        } finally {
-          this.isSubmitting = false;
-        }
+      async ["@submit"](ev) {
+        // Nothing for now
       },
     },
 
+    // let el = document.querySelector("#added");
+    // const newEl = document.createElement("div");
+    // el.prepend(newEl);
     trigger: {
       [":disabled"]() {
         return this.isSubmitting;
