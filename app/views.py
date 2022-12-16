@@ -7,18 +7,18 @@ This file creates your application.
 
 import time
 import flask
-from functools import partial
+
 from flask import json
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash, make_response, get_flashed_messages, Markup
+from flask import render_template, request, redirect, url_for, flash, make_response
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
 from app.models import User, Collection, Block, Bookmark
 from app.controller import create_bookmark, query_today_blocks, query_collections_and_block_count, query_multiple_ids, query_blocks_and_time_period
-from app import controller
-from datetime import datetime
-from sqlalchemy import func
+from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
+
 
 @app.route('/')
+@htmx_optional
 def home():
 
     query = query_collections_and_block_count()
@@ -26,20 +26,15 @@ def home():
     for col, count in query:
         col.block_count = count
 
-    return htmx(render_template('home.html', collections=collections))
-
+    return render_template('home.html', collections=collections)
 
 @app.route('/empty')
+@htmx_optional
 def home_empty():
-    return htmx(render_template('home.html', collections=[]))
-
-@app.route('/users')
-def show_users():
-    users = db.session.query(User).all() # or you could have used User.query.all()
-
-    return render_template('show_users.html', users=users)
+    return render_template('home.html', collections=[])
 
 @app.route('/create', methods=['POST'])
+@htmx_required
 def create_bookmark_view():
 
     data = request.form
@@ -65,6 +60,7 @@ def create_bookmark_view():
         group='day', label="Today", blocks=today_blocks)
 
 @app.route('/save', methods=['POST'])
+@htmx_required
 def save_bookmark_view():
 
     time.sleep(0.4)
@@ -95,6 +91,7 @@ def save_bookmark_view():
     return render_template('bookmark.html', block=bl)
 
 @app.route('/sidebar', methods=['POST'])
+@htmx_required
 def sidebar():
 
     ids = request.form.getlist('ids')
@@ -111,6 +108,7 @@ def sidebar():
 
 
 @app.route('/create-collection', methods=['POST'])
+@htmx_required
 def create_collection():
     col = Collection(title="New collection")
     db.session.add(col)
@@ -119,6 +117,7 @@ def create_collection():
     return htmx_redirect(f"/collection/{col.id}")
 
 @app.route('/collection/<collection_id>')
+@htmx_optional
 def show_collection(collection_id):
     collection = db.session.query(Collection).get(collection_id)
 
@@ -127,9 +126,9 @@ def show_collection(collection_id):
 
     add_form = AddBookmarkForm(data={'collection_id': collection_id})
 
-    return htmx(render_template('show_collection.html', 
+    return render_template('show_collection.html', 
         collection=collection, groups=groups, query=query,
-        add_form=add_form))
+        add_form=add_form)
 
 def group_to_label(group):
     return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]
@@ -145,53 +144,6 @@ def group_by_date(rows):
     groups = [(group, group_to_label(group), [row.Block for row in blocks]) 
         for group, blocks in group_iter]
     return groups
-
-
-def model_to_dict(self):
-    keys = self.__mapper__.columns.keys()
-    attrs = vars(self)
-    return { k : attrs[k] for k in keys if k in attrs}
-    
-
-@app.route('/add-user', methods=['POST', 'GET'])
-def add_user():
-
-    user_form = UserForm()
-
-    if request.method == 'POST':
-        if user_form.validate_on_submit():
-            name = user_form.name.data
-            email = user_form.email.data
-
-            user = User(name, email)
-            db.session.add(user)
-            db.session.commit()
-
-            flash('User successfully added')
-            return redirect(url_for('show_users'))
-
-    flash_errors(user_form)
-    return render_template('add_user.html', form=user_form)
-
-# Flash errors from the form if validation fails
-def flash_errors(form):
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(u"Error in the %s field - %s" % (
-                getattr(form, field).label.text,
-                error
-            ))
-
-###
-# The functions below should be applicable to all Flask apps.
-###
-
-@app.route('/<file_name>.txt')
-def send_text_file(file_name):
-    """Send your static text file."""
-    file_dot_text = file_name + '.txt'
-    return app.send_static_file(file_dot_text)
-
 
 @app.after_request
 def add_header(response):
@@ -213,47 +165,6 @@ def add_header(response):
         response.headers['Cache-Control'] = 'public, max-age=600'
     return response
 
-
-def htmx(content):
-    is_hx = request.headers.get('HX-Request')
-    if is_hx:
-        return content
-    return render_template('html_layout.html', content=Markup(content))
-
-
-def htmx_redirect(url):
-    resp = flask.Response("")
-    resp.headers['HX-Location'] = url
-    return resp
-
-@app.after_request
-def add_toasts(response):
-
-    is_hx = request.headers.get('HX-Request')
-
-    messages = get_flashed_messages()
-    if is_hx and messages:
-        data = {'showToasts': messages}
-        response.headers['HX-Trigger'] = json.dumps(data)
-
-    return response
-
-class Toast:
-    classes = "rounded px-4 py-4 mb-4 mr-6 flex items-center justify-center text-white shadow-lg cursor-pointer"
-    markup = Markup("""<div class="%(status_class)s %(classes)s">%(html)s</div>""")
-
-    def __init__(self, status_class, html):
-        self.status_class = status_class
-        self.html = html
-
-    def __html__(self):
-        return self.markup % { 'status_class': self.status_class, 
-            'classes': self.classes, 'html': self.html}
-
-Toast.success = staticmethod(partial(Toast, 'bg-emerald-600'))
-Toast.info = staticmethod(partial(Toast, 'bg-blue-600'))
-Toast.warning = staticmethod(partial(Toast, 'bg-orange-600'))
-Toast.error = staticmethod(partial(Toast, 'bg-chestnut-600'))
 
 @app.errorhandler(404)
 def page_not_found(error):
