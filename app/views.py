@@ -13,7 +13,7 @@ from app import app, db
 from flask import render_template, request, redirect, url_for, flash, make_response, get_flashed_messages, Markup
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
 from app.models import User, Collection, Block, Bookmark
-from app.controller import create_bookmark
+from app.controller import create_bookmark, query_today_blocks, query_collections_and_block_count, query_multiple_ids, query_blocks_and_time_period
 from app import controller
 from datetime import datetime
 from sqlalchemy import func
@@ -21,12 +21,7 @@ from sqlalchemy import func
 @app.route('/')
 def home():
 
-    query = (
-        db.session.query(Collection, func.count(Block.id))
-        .outerjoin(Block)
-        .group_by(Collection)
-    ).all()
-
+    query = query_collections_and_block_count()
     collections = [x for x, y in query]
     for col, count in query:
         col.block_count = count
@@ -64,24 +59,7 @@ def create_bookmark_view():
 
     flash(Toast.success("New bookmark added"))
 
-    # Just query everything for now because of laziness
-    # Ideally we would make sure this is the exact same filter
-    # as the group_by_date function
-    query = (
-        db.session.query(Block).
-        filter_by(ancestor_collection_id=collection_id).
-        outerjoin(Collection, Collection.id == Block.id).
-        outerjoin(Bookmark, Bookmark.id == Block.id).
-        order_by(Block.created_at.desc())
-    )
-
-    blocks = query.all()
-
-    groups = [(group, group_to_label(group), list(blocks)) 
-        for group, blocks in group_by_date(query)]
-    today_blocks = groups[0][2]
-    print(today_blocks)
-    if groups[0][0] != 'day': today_blocks = [] # probably won't happen
+    today_blocks = query_today_blocks(collection_id).all()
 
     return render_template('collection_group.html',
         group='day', label="Today", blocks=today_blocks)
@@ -121,12 +99,7 @@ def sidebar():
 
     ids = request.form.getlist('ids')
 
-    query = (
-        db.session.query(Block).
-        filter(Block.id.in_(ids)).
-        outerjoin(Collection, Collection.id == Block.id).
-        outerjoin(Bookmark, Bookmark.id == Block.id)
-    )
+    query = query_multiple_ids(ids)
     blocks = query.all()
     if len(blocks) == 1:
         block = blocks[0]
@@ -149,45 +122,29 @@ def create_collection():
 def show_collection(collection_id):
     collection = db.session.query(Collection).get(collection_id)
 
-    query = (
-        db.session.query(Block).
-        filter_by(ancestor_collection_id=collection_id).
-        outerjoin(Collection, Collection.id == Block.id).
-        outerjoin(Bookmark, Bookmark.id == Block.id).
-        order_by(Block.created_at.desc())
-    )
+    query = query_blocks_and_time_period(collection_id)
+    groups = group_by_date(query)
 
-    blocks = query.all()
-
-    groups = [(group, group_to_label(group), list(blocks)) 
-        for group, blocks in group_by_date(query)]
-        
     add_form = AddBookmarkForm(data={'collection_id': collection_id})
 
     return htmx(render_template('show_collection.html', 
-        collection=collection, blocks=blocks, groups=groups, query=query,
+        collection=collection, groups=groups, query=query,
         add_form=add_form))
 
 def group_to_label(group):
     return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]
 
-def group_by_date(blocks):
-    now = datetime.now()
+def group_by_date(rows):
     from itertools import groupby
 
-    day = 60 * 60 * 24
-    def groupfunc(block):
-        diff = (now - block.created_at).total_seconds()
+    def groupfunc(row):
+        return row.time_period
 
-        if diff < day: return "day"
-        elif diff < day * 7: return "week"
-        elif diff < day * 30: return "month"
-        elif diff < day * 30 * 3: return "3month"
-        elif diff < day * 365: return "year"
+    group_iter = groupby(rows, key=groupfunc)
 
-        return "other"
-
-    return groupby(blocks, key=groupfunc)
+    groups = [(group, group_to_label(group), [row.Block for row in blocks]) 
+        for group, blocks in group_iter]
+    return groups
 
 
 def model_to_dict(self):

@@ -29,19 +29,14 @@ def do_import():
         if not row['url']:
             bl = create_block(row['contents'], collection=col)
             bl.created_at = date
-            print(bl)
         else:
             bk = create_bookmark(title='', description=row['contents'], url=row['url'],
                 collection=col, created_at=date)
+            bk.block.created_at = date
             bookmarks.append(bk)
-
-            print(bk)
-
-    print(col)
 
     db.session.flush()
     for bk in bookmarks:
         bk.block.set_reference(bk)
 
     db.session.commit()
-    print(col)

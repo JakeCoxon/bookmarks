@@ -20,4 +20,8 @@ $ python run.py
 
 ## Init DB
 
+First init
 ```rm mydatabase.db; echo "from app.controller import init_db; init_db()" | python3 -```
+
+Do import 
+```echo "from scripts.do_import import do_import; do_import()" | python3 -```
