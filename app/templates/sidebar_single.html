@@ -1,6 +1,7 @@
 {% from "render_field.html" import render_field %}
 
-<div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar" key="sidebar_single">
+<div id="dynamicsidebar">
+<div x-data class="rightnav bg-gray-800 shadow-lg" key="sidebar_single">
 
   <div class="px-6 py-4 h-16 flex items-center text-sm">
 {% if block.bookmark %}
@@ -71,4 +72,5 @@
     </form>
   </div>
 
+</div>
 </div>

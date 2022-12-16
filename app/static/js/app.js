@@ -1,5 +1,3 @@
-let addBookmarkHtml = "";
-
 const clickBookmark = async (event, blockId) => {
   const store = Alpine.store("global");
 
@@ -14,13 +12,14 @@ const clickBookmark = async (event, blockId) => {
     store.selectedIds = [blockId];
   }
 
-  htmx.ajax("POST", "/sidebar", {
-    target: "#sidebar",
+  await htmx.ajax("POST", "/sidebar", {
+    target: "#dynamicsidebar",
     swap: "morph",
     values: {
       ids: store.selectedIds,
     },
   });
+  store.dynamicSidebarOpen = true;
 };
 
 document.addEventListener("customCssLoaded", () => {
@@ -30,15 +29,14 @@ document.addEventListener("customCssLoaded", () => {
 });
 
 document.addEventListener("alpine:init", () => {
-  const sidebar = document.querySelector("#sidebar");
-  if (sidebar) {
-    addBookmarkHtml = sidebar.outerHTML;
-  }
-
   Alpine.store("global", {
     selectedIds: [],
+    dynamicSidebarOpen: false,
     isSelected(id) {
       return this.selectedIds.includes(id);
+    },
+    get anySelected() {
+      return this.selectedIds.length > 0;
     },
   });
 
@@ -67,12 +65,8 @@ document.addEventListener("alpine:init", () => {
   document.body.addEventListener("click", async (event) => {
     if (isClickBody(event.target)) {
       if (store.selectedIds.length == 0) return;
-
       store.selectedIds = [];
-      console.log("Deselect");
-      let el = document.querySelector("#sidebar");
-      const result = Alpine.morph(el, addBookmarkHtml);
-      htmx.process(result);
+      store.dynamicSidebarOpen = false;
     }
   });
 });
@@ -101,17 +95,16 @@ htmx.defineExtension("bookmark-custom-swap", {
 const swapToday = (target, fragment) => {
   const text = fragment.outerHTML;
   const el = target.querySelector(`#group-day`) || target.querySelector(`#group-empty`);
-  const promise = Alpine.morph(el, text);
-  return { newElements: [target], promise };
+  const result = Alpine.morph(el, text);
+  return [result];
 };
 
 const swapBlocks = (target, fragment, blockId) => {
   const text = fragment.outerHTML;
   const blockEls = target.querySelectorAll(`[data-block-id="${blockId}"]`);
-  const promises = [];
+  const els = [];
   for (const el of blockEls) {
-    promises.push(Alpine.morph(el, text));
+    els.push(Alpine.morph(el, text));
   }
-  const promise = Promise.all(promises);
-  return { newElements: [target], promise };
+  return els;
 };

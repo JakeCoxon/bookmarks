@@ -1,6 +1,6 @@
 {% from "render_field.html" import render_field %}
 
-<div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar" key="sidebar_add">
+<div x-data class="rightnav bg-gray-800 shadow-lg" key="sidebar_add" x-show="!$store.global.dynamicSidebarOpen">
     
   <div class="px-6 py-4 h-16 flex items-center text-sm">
 
@@ -61,4 +61,8 @@
       <button class="darkbutton w-full">Import bookmarks</button>
     </div>
   </div>
+</div>
+
+<div x-show="$store.global.dynamicSidebarOpen">
+<div id="dynamicsidebar" x-skip-morph></div>
 </div>

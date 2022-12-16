@@ -96,6 +96,7 @@ def save_bookmark_view():
 @htmx_required
 def sidebar():
 
+    time.sleep(0.1)
     ids = request.form.getlist('ids')
 
     query = query_multiple_ids(ids)
