@@ -115,7 +115,7 @@ document.addEventListener("alpine:init", () => {
 const addBookmark = async (form) => {
   const data = form.getData();
 
-  const text = await hxRequest(`/create`, data);
+  const text = await spartanJsonPost(`/create`, data);
 
   let el = document.querySelector("#added");
   const newEl = document.createElement("div");
@@ -182,6 +182,9 @@ const createForm = ({ initialValues, onSubmit }) => {
       },
     },
 
+  // let el = document.querySelector("#added");
+  // const newEl = document.createElement("div");
+  // el.prepend(newEl);
     trigger: {
       [":disabled"]() {
         return this.isSubmitting;
@@ -190,6 +193,7 @@ const createForm = ({ initialValues, onSubmit }) => {
   };
 };
 
+  // Alpine.morph(newEl, text);
 const createToastsHandler = () => {
   let unique = 0;
   return {
