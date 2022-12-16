@@ -1,3 +1,4 @@
+import flask
 from functools import wraps
 from functools import partial
 from app import app

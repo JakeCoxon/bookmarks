@@ -8,12 +8,15 @@ This file creates your application.
 import time
 import flask
 
+from functools import partial
 from flask import json
 from app import app, db
+from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, make_response
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
 from app.models import User, Collection, Block, Bookmark
-from app.controller import create_bookmark, query_today_blocks, query_collections_and_block_count, query_multiple_ids, query_blocks_and_time_period
+from app.controller import (create_bookmark, query_today_blocks, query_collections_and_block_count,
+    query_multiple_ids, query_blocks_and_time_period, query_pinned)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
 
 
@@ -46,7 +49,6 @@ def create_bookmark_view():
     bk = create_bookmark(title=title, description=data['desc'], 
         url=data['url'], collection=col)
 
-    bl = bk.block
     db.session.flush()
 
     bk.block.set_reference(bk)
@@ -106,6 +108,23 @@ def sidebar():
         return render_template('sidebar_single.html', block=block, form=form)
     return render_template('sidebar_multi.html', blocks=blocks)
 
+@app.route('/pinned', methods=['POST'])
+@htmx_required
+def set_pinned():
+
+    id = request.args.get('id')
+    pinned = request.args.get('pinned') != 'false'
+
+    bl = Block.query.get(id)
+    
+    if pinned and not bl.pinned_at:
+        bl.pinned_at = datetime.now()
+    elif not pinned and bl.pinned_at:
+        bl.pinned_at = None
+
+    db.session.commit()
+    return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
+
 
 @app.route('/create-collection', methods=['POST'])
 @htmx_required
@@ -122,13 +141,24 @@ def show_collection(collection_id):
     collection = db.session.query(Collection).get(collection_id)
 
     query = query_blocks_and_time_period(collection_id)
-    groups = group_by_date(query)
+    page = int(request.args.get('page', 1))
+    pagination = query.paginate(page, 50)
+
+    pinned = list(query_pinned(collection_id)) if page == 1 else []
+
+    groups = group_by_date(pagination.items)
 
     add_form = AddBookmarkForm(data={'collection_id': collection_id})
 
+    make_url_2 = partial(url_for, 'show_collection', collection_id=collection.id)
+    def make_url(**kwargs):
+        if kwargs.get('page') == 1:
+            kwargs.pop('page')
+        return make_url_2(**kwargs)
+
     return render_template('show_collection.html', 
-        collection=collection, groups=groups, query=query,
-        add_form=add_form)
+        collection=collection, groups=groups, pagination=pagination,
+        pinned=pinned, add_form=add_form, make_url=make_url)
 
 def group_to_label(group):
     return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]

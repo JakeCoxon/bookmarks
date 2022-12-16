@@ -17,9 +17,19 @@ def query_blocks_and_time_period(collection_id):
     return (
         db.session.query(Block, block_created_at_period.label('time_period')).
         filter_by(ancestor_collection_id=collection_id).
-        outerjoin(Collection, Collection.id == Block.id).
+        filter(Block.pinned_at == None).
         outerjoin(Bookmark, Bookmark.id == Block.id).
         order_by(Block.created_at.desc())
+    )
+
+def query_pinned(collection_id):
+    return (
+        db.session.query(Block).
+        filter_by(ancestor_collection_id=collection_id).
+        filter(Block.pinned_at != None).
+        outerjoin(Bookmark, Bookmark.id == Block.id).
+        order_by(Block.created_at.desc()).
+        limit(3)
     )
 
 def query_today_blocks(collection_id):
@@ -97,6 +107,11 @@ def init_db():
         created_at -= timedelta(days=days)
 
     bookmark_blocks = [x.block for x in bookmarks]
+
+    for i in range(1,4):
+        bl = bookmark_blocks[random.randrange(0, len(bookmark_blocks))]
+        bl.pinned_at = datetime.now()
+        
     db.session.commit()
 
     for bk, bl in zip(bookmarks, bookmark_blocks):

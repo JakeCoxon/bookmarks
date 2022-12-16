@@ -2,15 +2,37 @@
 
 <div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar" key="sidebar_single">
 
+  <div class="px-6 py-4 h-16 flex items-center text-sm">
 {% if block.bookmark %}
-  <div class="px-6 py-4 h-16 flex items-center text-sm">
-    <div>Edit bookmark</div>
-  </div>
+    <div class="mr-auto">Edit bookmark</div>
 {% else %}
-  <div class="px-6 py-4 h-16 flex items-center text-sm">
-    <div>Edit note</div>
-  </div>
+    <div class="mr-auto">Edit note</div>
 {% endif %}
+
+
+    <div x-data="{dropdownMenu: false}" class="relative" key="dropdownMenu">
+      <button @click="dropdownMenu = !dropdownMenu"
+        class="flex items-center smallbutton"
+        :class="dropdownMenu ? 'bg-gray-600' : ''">
+          <span class="">menu</span>
+      </button>
+      <div x-show="dropdownMenu" class="absolute py-2 mt-2 bg-gray-600
+        right-0 rounded-md shadow-xl w-48" 
+        @click.outside="dropdownMenu = false">
+
+        {% if block.pinned_at %}
+          <button class="dropdownbutton text-right" hx-post="/pinned?id={{block.id}}&pinned=false">
+              Unpin
+          </button>
+        {% else %}
+          <button class="dropdownbutton text-right" hx-post="/pinned?id={{block.id}}&pinned=true">
+              Pin
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
 
   <div class="py-4 px-6">
     <form key="{{block.id}}" class="editform"

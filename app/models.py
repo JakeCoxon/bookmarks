@@ -36,7 +36,7 @@ class Block(db.Model):
     contents = db.Column(db.Text())
 
     reference_id = db.Column(db.String(255))
-    _color = db.Column('color', db.String(255), default='gradient1')
+    _color = db.Column('color', db.String(255))
 
     @property
     def color(self):
@@ -67,6 +67,8 @@ class Block(db.Model):
 
     ancestor_collection_id = db.Column(db.String(255), db.ForeignKey("collections.id"))
     collection = db.relationship('Collection', backref=db.backref('blocks', lazy='dynamic'))
+
+    pinned_at = db.Column(db.DateTime)
 
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)

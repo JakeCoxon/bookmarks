@@ -1,6 +1,6 @@
 from flask import Markup
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, TextAreaField, RadioField
+from wtforms import StringField, HiddenField, TextAreaField, RadioField, BooleanField
 from wtforms.widgets.core import ListWidget, RadioInput
 from wtforms.validators import InputRequired
 from wtforms.meta import DefaultMeta

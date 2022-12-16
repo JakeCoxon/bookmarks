@@ -26,14 +26,54 @@
 
       <div class="h-12"></div>
 
-      <div class="grid" :class="'grid--' + gridType" id="added">
-      </div>
+      {% if pinned %}
+        {% set group = 'pinned' %}
+        {% set label = 'Pinned' %}
+        {% set blocks = pinned %}
+        <div x-data="{gridType:'card'}">
+          {% include "collection_group.html" %}
+        </div>
+      {% endif %}
 
       <div id="group-empty"></div>
 
       {% for group, label, blocks in groups %}
         {% include "collection_group.html" %}
       {% endfor %}
+
+      {% if pagination %}
+
+      <div class="flex flex-row items-center justify-center mb-10">
+          <a href="{{ make_url(page=pagination.prev_num) }}"
+            class="px-4 py-2 rounded 
+            {% if pagination.page == 1 %}disabled{% endif %}">
+              &laquo;
+          </a>
+          {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+              {% if page_num %}
+                  {% if pagination.page == page_num %}
+                  <a href="{{ make_url(page=page_num) }}"
+                    class="px-4 py-2 rounded bg-gray-800">
+                      {{ page_num }}
+                  </a>
+                  {% else %}
+                  <a href="{{ make_url(page=page_num) }}"
+                    class="px-4 py-2 rounded">
+                      {{ page_num }}
+                  </a>
+                  {% endif %}
+              {% else %}
+                  <div class="px-5">...</div>
+              {% endif %}
+          {% endfor %}
+          <a href="{{ make_url(page=pagination.next_num) }}"
+            class="px-4 py-2 rounded 
+            {% if pagination.page == pagination.pages %}disabled{% endif %}">
+              &raquo;
+          </a>
+      </div>
+
+      {% endif %}
 
     </div>
 
