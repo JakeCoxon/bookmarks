@@ -53,6 +53,12 @@ textarea::placeholder {
 .smallbutton {
   composes: px-3 py-1 border border-gray-700;
 }
+.dropdownbutton {
+  composes: display-block px-4 py-2 text-sm w-full text-left;
+  &:hover {
+    composes: text-white bg-gray-400;
+  }
+}
 
 pre {
   word-wrap: break-word;
@@ -78,6 +84,7 @@ pre {
   bottom: 0;
   width: 400px;
   flex-shrink: 0;
+  overflow-x: hidden;
   overflow-y: auto;
 }
 .rightnavspace {

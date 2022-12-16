@@ -3,7 +3,29 @@
 <div x-data class="rightnav bg-gray-800 shadow-lg" id="sidebar">
     
   <div class="px-6 py-4 h-16 flex items-center text-sm">
-    <div>{{ collection.title }}</div>
+
+    <div class="mr-auto">{{ collection.title }}</div>
+
+
+    <div x-data="{dropdownMenu: false}" class="relative" key="dropdownMenu">
+      <button @click="dropdownMenu = !dropdownMenu"
+        class="flex items-center smallbutton"
+        :class="dropdownMenu ? 'bg-gray-600' : ''">
+          <span class="">menu</span>
+      </button>
+      <div x-show="dropdownMenu" class="absolute py-2 mt-2 bg-gray-600
+        right-0 rounded-md shadow-xl w-48" 
+        @click.outside="dropdownMenu = false">
+          <button class="dropdownbutton text-right" hx-post="">
+              Rename
+          </button>
+          <button class="dropdownbutton text-right" hx-post="">
+              Delete
+          </button>
+      </div>
+    </div>
+
+
   </div>
 
   <div class="h-full flex flex-col justify-center p-2">
