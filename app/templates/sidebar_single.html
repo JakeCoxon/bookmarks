@@ -21,14 +21,17 @@
         @click.outside="dropdownMenu = false">
 
         {% if block.pinned_at %}
-          <button class="dropdownbutton text-right" hx-post="/pinned?id={{block.id}}&pinned=false">
+          <button class="dropdownbutton text-right" hx-post="/block/{{block.id}}/pinned?pinned=false">
               Unpin
           </button>
         {% else %}
-          <button class="dropdownbutton text-right" hx-post="/pinned?id={{block.id}}&pinned=true">
+          <button class="dropdownbutton text-right" hx-post="/block/{{block.id}}/pinned?&pinned=true">
               Pin
           </button>
         {% endif %}
+        <button class="dropdownbutton text-right" hx-post="/block/{{block.id}}/delete">
+            Delete
+        </button>
       </div>
     </div>
 

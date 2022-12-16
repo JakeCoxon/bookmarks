@@ -69,6 +69,7 @@ class Block(db.Model):
     collection = db.relationship('Collection', backref=db.backref('blocks', lazy='dynamic'))
 
     pinned_at = db.Column(db.DateTime)
+    deleted_at = db.Column(db.DateTime)
 
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)

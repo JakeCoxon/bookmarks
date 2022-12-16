@@ -18,6 +18,7 @@ def query_blocks_and_time_period(collection_id):
         db.session.query(Block, block_created_at_period.label('time_period')).
         filter_by(ancestor_collection_id=collection_id).
         filter(Block.pinned_at == None).
+        filter(Block.deleted_at == None).
         outerjoin(Bookmark, Bookmark.id == Block.id).
         order_by(Block.created_at.desc())
     )
@@ -27,6 +28,7 @@ def query_pinned(collection_id):
         db.session.query(Block).
         filter_by(ancestor_collection_id=collection_id).
         filter(Block.pinned_at != None).
+        filter(Block.deleted_at == None).
         outerjoin(Bookmark, Bookmark.id == Block.id).
         order_by(Block.created_at.desc()).
         limit(3)

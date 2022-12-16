@@ -108,21 +108,36 @@ def sidebar():
         return render_template('sidebar_single.html', block=block, form=form)
     return render_template('sidebar_multi.html', blocks=blocks)
 
-@app.route('/pinned', methods=['POST'])
+@app.route('/block/<block_id>/pinned', methods=['POST'])
 @htmx_required
-def set_pinned():
+def set_pinned(block_id):
 
-    id = request.args.get('id')
     pinned = request.args.get('pinned') != 'false'
 
-    bl = Block.query.get(id)
+    bl = Block.query.get(block_id)
     
+    toast = None
     if pinned and not bl.pinned_at:
         bl.pinned_at = datetime.now()
+        toast = Toast.success("Block pinned")
     elif not pinned and bl.pinned_at:
         bl.pinned_at = None
+        toast = Toast.success("Block unpinned")
 
     db.session.commit()
+    if toast: flash(toast)
+
+    return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
+
+@app.route('/block/<block_id>/delete', methods=['POST'])
+@htmx_required
+def delete_block(block_id):
+
+    bl = Block.query.get(block_id)
+    bl.deleted_at = datetime.now()
+    
+    db.session.commit()
+    flash(Toast.success("Block deleted"))
     return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
 
 
