@@ -290,11 +290,34 @@ pre {
   &-preview {
     width: 25px;
     flex-shrink: 0;
+    position: relative;
     // background: #eee;
+
+    &-overlay {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      // mix-blend-mode: multiply;
+      opacity: 0.2;
+    }
+
+    &--grid {
+      width: 100px;
+    }
+
+    &--list {
+      width: 100px;
+    }
 
     &--card {
       width: 100%;
       height: 25px;
+    }
+    &--card&--expand {
+      height: 75px;
     }
 
     & img {
@@ -302,6 +325,7 @@ pre {
       height: 100%;
       object-fit: cover;
       pointer-events: none;
+      filter: contrast(80%) saturate(100%);
     }
   }
 }

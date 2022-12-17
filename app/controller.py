@@ -95,6 +95,15 @@ def init_db():
 
     bookmarks = []
 
+    images = [
+        'http://localhost:8080/static/placeholders/a.jpg',
+        'http://localhost:8080/static/placeholders/b.jpg',
+        'http://localhost:8080/static/placeholders/c.jpg',
+        'http://localhost:8080/static/placeholders/d.jpg',
+        '',
+        ''
+    ]
+
     created_at = datetime.now()
     for i in range(1,100):
         bk = create_bookmark(
@@ -104,6 +113,8 @@ def init_db():
 
         bk.created_at = created_at
         bk.block.created_at = created_at
+
+        bk.image = images[random.randrange(0, len(images))]
         
         days = random.randrange(1, 3)
         created_at -= timedelta(days=days)

@@ -1083,7 +1083,7 @@ const createCssGenerator = () => {
           cssLines.push(`${key} { ${keyframeToCss(obj)} }\n`);
           return;
         }
-        key = key.replace("&", parent);
+        key = key.replaceAll("&", parent);
 
         const defer = [];
         const props = objectToLines(obj, defer);
