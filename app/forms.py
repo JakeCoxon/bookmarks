@@ -1,6 +1,6 @@
-from flask import Markup
+from flask import Markup, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, TextAreaField, RadioField, BooleanField
+from wtforms import StringField, HiddenField, TextAreaField, RadioField, BooleanField, SelectMultipleField
 from wtforms.widgets.core import ListWidget, RadioInput
 from wtforms.validators import InputRequired
 from wtforms.meta import DefaultMeta
@@ -55,6 +55,9 @@ ColorField = RadioField('Color',
         ('gradient5', ''),
     ])
 
+def TagsInput(field, **kwargs):
+    return Markup(render_template("field_tags.html", field=field))
+
 class AddBookmarkForm(FlaskForm):
 
     Meta = AlpineMeta
@@ -74,6 +77,8 @@ class BookmarkForm(FlaskForm):
     title = StringField('Title')
     color = ColorField
 
+    tags = SelectMultipleField('Tags', choices=[], widget=TagsInput)
+
     image = StringField('Image')
     desc = TextAreaField('Description', render_kw={'height': '250px'})
     notes = TextAreaField('Notes', render_kw={'height': '250px'})
@@ -85,6 +90,7 @@ class BookmarkForm(FlaskForm):
             'collection_id': block.ancestor_collection_id,
             'color': block.color,
             'url': block.bookmark.url,
+            'tags': ['foo', 'bar'],
             'title': block.bookmark.title,
             'desc': block.bookmark.description,
             'notes': block.bookmark.notes,

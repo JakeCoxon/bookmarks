@@ -328,6 +328,10 @@ pre {
   }
 }
 
+.focus\:outline-none:focus {
+  outline: none;
+}
+
 .slidetransition {
   &-enter {
     transition: all 200ms ease-out;

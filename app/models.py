@@ -103,8 +103,19 @@ class Bookmark(db.Model):
     logo = db.Column(db.Text())
     notes = db.Column(db.Text())
 
+    tags = db.relationship('Tag', back_populates='bookmark')
+
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     def __repr__(self):
         return '<Bookmark %r url=%r>' % (self.id, self.url)
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    bookmark_id = db.Column(db.String(255), db.ForeignKey('bookmarks.id'), primary_key=True)
+    label = db.Column(db.String(255), primary_key=True)
+    bookmark = db.relationship('Bookmark', back_populates='tags')
+
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = db.Column(db.DateTime, default=datetime.now)

@@ -1,0 +1,46 @@
+<div>
+      
+    
+    <div x-data='createTagHandler({{field.data|tojson}})'>
+
+      <template x-for="tag in tags">
+          <input type="hidden" name="{{field.name}}" x-bind:value="tag">
+      </template>
+
+      <div class="">
+          <div class="" >
+              <div class="flex flex-row flex-wrap rounded bg-gray-600 p-1 gap-2">
+                  <template x-for="tag in tags" :key="tag">
+                    <span class="rounded px-2 py-1 bg-gray-500">
+                      <span x-text="tag"></span>
+                      <button type="button" @click="remove(tag)">
+                        &times;
+                      </button>
+                    </span>
+                  </template>
+
+                  <input class="bg-transparent m-1 focus:outline-none flex-1"
+                    style="min-width: 70px"
+                    placeholder="Add tag..." x-model="tagInput"
+                    x-on:keydown.enter="addFromInput($event)"
+                    x-on:focus=""
+                    x-on:keydown.escape=""
+                  >
+              </div>
+              <span id="tag-cloud" class="list-group" x-show="false">
+                  <!-- <template
+                      x-for="service in services.filter((service) =>   service.toLowerCase().startsWith(newTag.toLowerCase()))"
+                      :key="service">
+                    <span class="tags-input-tag"
+                           x-on:click="services = services.filter(i => i !== service);addTag(`${service}`, tags);newTag='';show=false;">
+                      <div :x-ref="service"
+                           
+                            class="w-full hover:bg-gray-300" x-text="service"></div>
+                    </span>
+                  </template> -->
+              </span>
+          </div>
+
+      </div>
+  </div>
+</div>

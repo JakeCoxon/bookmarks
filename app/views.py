@@ -14,7 +14,7 @@ from app import app, db
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, make_response
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
-from app.models import User, Collection, Block, Bookmark
+from app.models import User, Collection, Block, Bookmark, Tag
 from app.controller import (create_bookmark, query_today_blocks, query_collections_and_block_count,
     query_multiple_ids, query_blocks_and_time_period, query_pinned)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
@@ -77,12 +77,25 @@ def save_bookmark_view():
     bl = query.first()
 
     if bl.bookmark:
+        print(data.getlist('tags'))
+
         title = data.get('title')
         bl.bookmark.title = title
         bl.bookmark.url = data['url']
         bl.bookmark.image = data['image']
         bl.bookmark.description = data['desc']
         bl.bookmark.notes = data['notes']
+
+        new_tag_set = set(data.getlist('tags'))
+        old_tag_set = set([x.label for x in bl.bookmark.tags])
+
+        for tag in bl.bookmark.tags:
+            if tag.label not in new_tag_set:
+                db.session.delete(tag)
+
+        for label in new_tag_set.difference(old_tag_set):
+            db.session.add(Tag(label=label, bookmark_id=bl.bookmark.id))
+
     else:
         bl.contents = data['contents']
     bl.color = data['color']

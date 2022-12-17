@@ -58,6 +58,7 @@
         {% if block.bookmark.image %}
         <img src="{{block.bookmark.image}}" />
         {% endif %}
+        {{ render_field(form.tags) }}
         {{ render_field(form.desc) }}
         {{ render_field(form.notes) }}
         

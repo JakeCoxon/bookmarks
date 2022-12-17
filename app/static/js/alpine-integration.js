@@ -113,6 +113,22 @@ const createModalHandler = () => {
   };
 };
 
+const createTagHandler = (initial) => {
+  return {
+    tags: initial,
+    tagInput: "",
+    remove(tag) {
+      this.tags = this.tags.filter((x) => x !== tag);
+    },
+    addFromInput(ev) {
+      ev.preventDefault();
+      if (this.tags.includes(this.tagInput)) return;
+      this.tags.push(this.tagInput);
+      this.tagInput = "";
+    },
+  };
+};
+
 const customMorphSettings = {
   updating(el, toEl, childrenOnly, skip) {
     if (toEl.getAttribute && toEl.getAttribute("x-skip-morph") !== null) {

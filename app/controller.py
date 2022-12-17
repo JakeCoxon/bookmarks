@@ -1,6 +1,6 @@
 import random
 from app import db
-from app.models import User, Collection, Block, Bookmark, Counter
+from app.models import User, Collection, Block, Bookmark, Counter, Tag
 from sqlalchemy import select, case, func
 from datetime import datetime, timedelta
 
@@ -118,6 +118,9 @@ def init_db():
         
         days = random.randrange(1, 3)
         created_at -= timedelta(days=days)
+
+        tag = Tag(label='Tag 1')
+        bk.tags.append(tag)
 
     bookmark_blocks = [x.block for x in bookmarks]
 
