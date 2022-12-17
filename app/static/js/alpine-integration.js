@@ -9,6 +9,22 @@ document.addEventListener("alpine:init", () => {
   Alpine.store("toasts", createToastsHandler());
 
   Alpine.store("modal", createModalHandler());
+
+  Alpine.directive("losefocus", (el, { expression }, { evaluateLater, cleanup }) => {
+    const callback = evaluateLater(expression);
+
+    const handler = (event) => {
+      setTimeout(() => {
+        if (!el.contains(document.activeElement)) callback();
+      }, 0);
+    };
+
+    el.addEventListener("focusout", handler, true);
+
+    cleanup(() => {
+      el.removeEventListener("focusout", handler, true);
+    });
+  });
 });
 
 document.addEventListener("htmx:sendError", (evt) => {
@@ -113,18 +129,85 @@ const createModalHandler = () => {
   };
 };
 
-const createTagHandler = (initial) => {
+function debounce(func, timeout = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, timeout);
+  };
+}
+
+const createTagHandler = (initial, requestUrl) => {
+  const doRefetch = debounce((f) => f(), 300);
+
   return {
     tags: initial,
+    requestUrl,
+    showAutoComplete: false,
     tagInput: "",
+    lastRequestInput: undefined,
     remove(tag) {
       this.tags = this.tags.filter((x) => x !== tag);
     },
-    addFromInput(ev) {
-      ev.preventDefault();
+    add(tag) {
+      this.tags.push(tag);
+      this.tagInput = "";
+    },
+    addFromInput() {
       if (this.tags.includes(this.tagInput)) return;
       this.tags.push(this.tagInput);
       this.tagInput = "";
+    },
+    container: {
+      ["x-on:keydown.escape"]() {
+        this.showAutoComplete = false;
+      },
+      ["x-on:click.away"]() {
+        this.showAutoComplete = false;
+      },
+      ["x-losefocus"]() {
+        this.showAutoComplete = false;
+      },
+    },
+    refetch() {
+      doRefetch(async () => {
+        const input = this.tagInput;
+        if (this.lastRequestInput === input) return;
+        const target = this.$refs.autoComplete.firstElementChild;
+        await htmx.ajax("POST", this.requestUrl, {
+          target: target,
+          swap: "morph",
+          values: {
+            input: input,
+            tags: this.tags,
+          },
+        });
+        this.lastRequestInput = input;
+      });
+    },
+    autoComplete: {
+      "x-ref": "autoComplete",
+    },
+    textInput: {
+      "x-model": "tagInput",
+      ["x-on:keydown.enter"]() {
+        this.$event.preventDefault();
+        this.addFromInput();
+      },
+      ["x-on:click"]() {
+        this.showAutoComplete = true;
+        this.refetch();
+      },
+      ["x-on:keydown"]() {
+        this.showAutoComplete = true;
+        this.refetch();
+      },
+      ["x-on:focus"]() {
+        this.showAutoComplete = true;
+        this.refetch();
+      },
     },
   };
 };

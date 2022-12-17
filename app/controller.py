@@ -57,7 +57,16 @@ def query_multiple_ids(collection_id, ids):
         db.session.query(Block).
         filter_by(ancestor_collection_id=collection_id).
         filter(Block.id.in_(ids)).
-        outerjoin(Bookmark, Bookmark.id == Block.id)
+        outerjoin(Bookmark, Bookmark.id == Block.id).
+        outerjoin(Tag, Tag.bookmark_id == Bookmark.id)
+    )
+
+
+def query_tags(collection_id, given_tags, input):
+    return (
+        db.session.query(Tag.label).
+        filter(Tag.label.contains(input)).
+        distinct(Tag.label)
     )
 
 def create_collection(title):
@@ -100,6 +109,10 @@ def init_db():
         'http://localhost:8080/static/placeholders/b.jpg',
         'http://localhost:8080/static/placeholders/c.jpg',
         'http://localhost:8080/static/placeholders/d.jpg',
+        'http://localhost:8080/static/placeholders/e.jpg',
+        'http://localhost:8080/static/placeholders/f.jpg',
+        'http://localhost:8080/static/placeholders/g.jpg',
+        'http://localhost:8080/static/placeholders/h.jpg',
         '',
         ''
     ]

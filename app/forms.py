@@ -19,10 +19,12 @@ class AlpineMeta(DefaultMeta):
         if other_kw is not None:
             render_kw = dict(other_kw, **render_kw)
 
+        # allow using height=num prop
         height = render_kw.pop('height', None)
         if height:
             render_kw['style'] = f"height: {height};"
 
+        # make sure widgets are bound using x-model
         if not isinstance(field.widget, ListWidget):
             render_kw['x-model'] = field.name
 
@@ -56,7 +58,8 @@ ColorField = RadioField('Color',
     ])
 
 def TagsInput(field, **kwargs):
-    return Markup(render_template("field_tags.html", field=field))
+    kwargs['request_url'] = kwargs['request_url'] or '' 
+    return Markup(render_template("field_tags.html", field=field, **kwargs))
 
 class AddBookmarkForm(FlaskForm):
 
@@ -90,7 +93,7 @@ class BookmarkForm(FlaskForm):
             'collection_id': block.ancestor_collection_id,
             'color': block.color,
             'url': block.bookmark.url,
-            'tags': ['foo', 'bar'],
+            'tags': [x.label for x in block.bookmark.tags],
             'title': block.bookmark.title,
             'desc': block.bookmark.description,
             'notes': block.bookmark.notes,

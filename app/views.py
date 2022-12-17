@@ -12,11 +12,11 @@ from functools import partial
 from flask import json
 from app import app, db
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, make_response
+from flask import render_template, request, redirect, url_for, flash, make_response, Markup
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
 from app.models import User, Collection, Block, Bookmark, Tag
 from app.controller import (create_bookmark, query_today_blocks, query_collections_and_block_count,
-    query_multiple_ids, query_blocks_and_time_period, query_pinned)
+    query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
 
 
@@ -121,6 +121,18 @@ def sidebar(collection_id):
 
         return render_template('sidebar_single.html', block=block, form=form)
     return render_template('sidebar_multi.html', blocks=blocks, collection_id=collection_id)
+
+@app.route('/collection/<collection_id>/tags', methods=['POST'])
+@htmx_required
+def tags_autocomplete(collection_id):
+
+    given_tags = request.form.getlist('tags')
+    input = request.form.get('input')
+
+    found_tags = [x.label for x in 
+        query_tags(collection_id, given_tags, input).limit(10).all()]
+
+    return render_template("tag_autocomplete.html", tags=found_tags, input=input)
 
 @app.route('/block/<block_id>/pinned', methods=['POST'])
 @htmx_required
