@@ -127,7 +127,7 @@ const swapBlocks = (target, fragment, blockId) => {
   const blockEls = target.querySelectorAll(`[data-block-id="${blockId}"]`);
   const els = [];
   for (const el of blockEls) {
-    els.push(Alpine.morph(el, text), customMorphSettings);
+    els.push(Alpine.morph(el, text, customMorphSettings));
   }
   return els;
 };

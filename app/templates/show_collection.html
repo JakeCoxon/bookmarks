@@ -44,21 +44,21 @@
       {% if pagination %}
 
       <div class="flex flex-row items-center justify-center mb-10">
-          <a href="{{ make_url(page=pagination.prev_num) }}"
-            class="px-4 py-2 rounded 
+          <a href="{{ make_url(page=pagination.prev_num) }}" hx-boost="true"
+            class="px-4 py-2 rounded hover:bg-gray-600 
             {% if pagination.page == 1 %}disabled{% endif %}">
               &laquo;
           </a>
           {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
               {% if page_num %}
                   {% if pagination.page == page_num %}
-                  <a href="{{ make_url(page=page_num) }}"
+                  <a href="{{ make_url(page=page_num) }}" hx-boost="true"
                     class="px-4 py-2 rounded bg-gray-800">
                       {{ page_num }}
                   </a>
                   {% else %}
-                  <a href="{{ make_url(page=page_num) }}"
-                    class="px-4 py-2 rounded">
+                  <a href="{{ make_url(page=page_num) }}" hx-boost="true"
+                    class="px-4 py-2 rounded hover:bg-gray-600">
                       {{ page_num }}
                   </a>
                   {% endif %}
@@ -66,8 +66,8 @@
                   <div class="px-5">...</div>
               {% endif %}
           {% endfor %}
-          <a href="{{ make_url(page=pagination.next_num) }}"
-            class="px-4 py-2 rounded 
+          <a href="{{ make_url(page=pagination.next_num) }}" hx-boost="true"
+            class="px-4 py-2 rounded hover:bg-gray-600 
             {% if pagination.page == pagination.pages %}disabled{% endif %}">
               &raquo;
           </a>

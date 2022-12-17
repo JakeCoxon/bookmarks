@@ -453,20 +453,20 @@ const config = {
 
   modules: {
     appearance: ["responsive"],
-    backgroundAttachment: false,
-    backgroundColors: [],
-    backgroundPosition: false,
-    backgroundRepeat: false,
-    backgroundSize: false,
+    backgroundAttachment: [],
+    backgroundColors: ["hover"],
+    backgroundPosition: [],
+    backgroundRepeat: [],
+    backgroundSize: [],
     borderCollapse: [],
     borderColors: [],
-    borderRadius: false,
-    borderStyle: false,
+    borderRadius: [],
+    borderStyle: [],
     borderWidths: [],
     cursor: [],
     display: ["responsive"],
     flexbox: ["responsive"],
-    float: false,
+    float: [],
     fonts: [],
     fontWeights: [],
     height: ["responsive"],
@@ -478,27 +478,27 @@ const config = {
     minHeight: ["responsive"],
     minWidth: ["responsive"],
     negativeMargin: ["responsive"],
-    objectFit: false,
-    objectPosition: false,
+    objectFit: [],
+    objectPosition: [],
     opacity: [],
     outline: ["focus"],
     overflow: [],
     padding: ["responsive"],
     pointerEvents: [],
     position: ["responsive"],
-    resize: false,
-    shadows: false,
+    resize: [],
+    shadows: [],
     svgFill: [],
     svgStroke: [],
-    tableLayout: false,
+    tableLayout: [],
     textAlign: ["responsive"],
     textColors: ["responsive", "hover"],
     textSizes: ["responsive"],
     textStyle: [],
-    tracking: false,
-    userSelect: false,
-    verticalAlign: false,
-    visibility: false,
+    tracking: [],
+    userSelect: [],
+    verticalAlign: [],
+    visibility: [],
     whitespace: [],
     width: ["responsive"],
     zIndex: [],
@@ -563,10 +563,22 @@ const dynamicStyles = {
   ],
 
   // https://tailwindcss.com/docs/border-radius
-  "rounded-t": { prop: "borderTopRadius", config: "borderRadius" },
-  "rounded-r": { prop: "borderRightRadius", config: "borderRadius" },
-  "rounded-b": { prop: "borderBottomRadius", config: "borderRadius" },
-  "rounded-l": { prop: "borderLeftRadius", config: "borderRadius" },
+  "rounded-t": [
+    { prop: "borderTopLeftRadius", config: "borderRadius" },
+    { prop: "borderTopRightRadius", config: "borderRadius" },
+  ],
+  "rounded-r": [
+    { prop: "borderTopRightRadius", config: "borderRadius" },
+    { prop: "borderBottomRightRadius", config: "borderRadius" },
+  ],
+  "rounded-b": [
+    { prop: "borderBottomLeftRadius", config: "borderRadius" },
+    { prop: "borderBottomRightRadius", config: "borderRadius" },
+  ],
+  "rounded-l": [
+    { prop: "borderTopLeftRadius", config: "borderRadius" },
+    { prop: "borderBottomLeftRadius", config: "borderRadius" },
+  ],
   "rounded-tl": { prop: "borderTopLeftRadius", config: "borderRadius" },
   "rounded-tr": { prop: "borderTopRightRadius", config: "borderRadius" },
   "rounded-br": { prop: "borderBottomRightRadius", config: "borderRadius" },
@@ -931,7 +943,7 @@ const stylesConfig = { dynamicStyles, staticStyles };
 ///////////////////////
 
 const parseCss = (str) => {
-  const tokens = str.split(/({|}|;|:(?!\S))/);
+  const tokens = str.split(/(\/\/.+(?=\n)|{|}|;)/);
   let idx = 0;
   let previous = null;
   let current = tokens[0].trim();
@@ -940,28 +952,36 @@ const parseCss = (str) => {
     while (true) {
       idx++;
       current = tokens[idx]?.trim();
-      if (current === undefined || current.length > 0) break;
+      if (current === undefined) break;
+      if (current && current.startsWith("//")) continue;
+      if (current.length > 0) break;
     }
     return previous;
   };
   const match = (expected) => (tokens[idx] === expected ? (advance(), true) : false);
-  const parseValue = () => {
-    if (match("{")) return parseKvs();
-    if (match(":")) {
-      const value = current;
-      advance();
-      if (!match(";")) throw new Error("Missing semicolon");
-      return value;
-    }
-  };
   const parseKv = (obj) => {
     let key = current;
     advance();
     if (key === "@keyframes") {
       key = `${key} ${current}`;
       advance();
+    } else if (key === "@media") {
+      while (current !== "{") {
+        key += ` ${current}`;
+        advance();
+      }
     }
-    const value = parseValue();
+
+    let value;
+    if (match("{")) value = parseKvs();
+    else {
+      const colon = previous.indexOf(":");
+      if (colon == -1) throw new Error(`Expected ':'`);
+      [key, value] = [previous.slice(0, colon), previous.slice(colon + 1)];
+      value = value.trim();
+      if (current != ";") throw new Error(`Expected ';'`);
+      advance();
+    }
     obj[key] = value;
   };
   const parseKvs = () => {
@@ -971,14 +991,21 @@ const parseCss = (str) => {
   };
   return parseKvs();
 };
-// console.log(parseCss(str));
+
+const createVariant =
+  (pseudo) =>
+  ({ className, value }) => ({ className: `${pseudo}\\:${className}:${pseudo}`, value });
+
+const modules = {
+  // responsive: ["screens"],
+  hover: createVariant("hover"),
+  active: createVariant("active"),
+  focus: createVariant("focus"),
+};
 
 const generateTw = ({ staticStyles, dynamicStyles }, config) => {
   const obj = {};
   Object.entries(staticStyles).forEach(([key, value]) => {
-    // if (typeof value === 'object') {
-    //   obj[`.${key}`] = value;
-    // }
     obj[`.${key}`] = Object.entries(value).reduce((acc, [key, value]) => {
       acc[kebabize(key)] = value;
       return acc;
@@ -986,22 +1013,33 @@ const generateTw = ({ staticStyles, dynamicStyles }, config) => {
   });
   Object.entries(dynamicStyles).forEach(([key, value]) => {
     (Array.isArray(value) ? value : [value]).forEach(({ prop, format, config: configName }) => {
-      (Array.isArray(prop) ? prop : [prop]).forEach((prop) => {
-        Object.entries(config[configName]).forEach(([keySuffix, styleValue]) => {
-          const recur = (keySuffix, styleValue) => {
-            if (!format && typeof styleValue === "object") {
-              Object.entries(styleValue).forEach(([keySuffix2, styleValue]) => {
-                recur(`${keySuffix}-${keySuffix2}`, styleValue);
-              });
-              return;
-            }
+      let variants = config.modules[configName] || [];
+      if (!variants) return;
+      variants = [undefined, ...variants.map((x) => modules[x])];
+      variants.forEach((variant) => {
+        (Array.isArray(prop) ? prop : [prop]).forEach((prop) => {
+          Object.entries(config[configName]).forEach(([keySuffix, styleValue]) => {
+            const recur = (keySuffix, styleValue) => {
+              if (!format && typeof styleValue === "object") {
+                Object.entries(styleValue).forEach(([keySuffix2, styleValue]) => {
+                  recur(`${keySuffix}-${keySuffix2}`, styleValue);
+                });
+                return;
+              }
 
-            const keyFull = keySuffix === "default" ? `.${key}` : `.${key}-${keySuffix}`;
-            obj[keyFull] = Object.assign(obj[keyFull] || {}, {
-              [kebabize(prop)]: format ? format(styleValue) : styleValue,
-            });
-          };
-          recur(keySuffix, styleValue);
+              let struct = {
+                className: key,
+                value: {
+                  [kebabize(prop)]: format ? format(styleValue) : styleValue,
+                },
+              };
+              if (keySuffix !== "default") struct.className += `-${keySuffix}`;
+              if (variant) struct = variant(struct);
+              const finalKey = `.${struct.className}`;
+              obj[finalKey] = Object.assign(obj[finalKey] || {}, struct.value);
+            };
+            recur(keySuffix, styleValue);
+          });
         });
       });
     });
@@ -1078,20 +1116,21 @@ const createCssGenerator = () => {
         );
         return Object.entries(obj).reduce(accumulate, []).join("\n");
       };
-      const push = (parent, key, obj) => {
+      const push = (root, parent, key, obj) => {
         if (key.startsWith("@keyframes")) {
           cssLines.push(`${key} { ${keyframeToCss(obj)} }\n`);
           return;
         }
         key = key.replaceAll("&", parent);
+        key = key.replaceAll("%", root);
 
         const defer = [];
         const props = objectToLines(obj, defer);
         cssLines.push(`${key} { ${props.join(" ")} }\n`);
-        defer.forEach(([prop, value]) => push(key, prop, value));
+        defer.forEach(([prop, value]) => push(root || key, key, prop, value));
       };
 
-      Object.entries(lookupMap).forEach(([key, value]) => push("", key, value));
+      Object.entries(lookupMap).forEach(([key, value]) => push("", "", key, value));
 
       return cssLines.join("");
     },
@@ -1124,3 +1163,12 @@ fetch("/static/css/app.css")
     insertCssIntoBody(cssGenerator.finalCss());
     document.body.dispatchEvent(new CustomEvent("customCssLoaded"));
   });
+
+// TODO:
+// - TW Util comes later
+// - Transition
+// - Media queries
+
+// - Hover, active, focus
+// - Figure out variants
+// - Comments

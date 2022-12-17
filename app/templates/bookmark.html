@@ -12,21 +12,24 @@
   {% if block.bookmark %}
     <div class="myblock-bookmark-preview 
         {% if block.bookmark.image %}myblock-bookmark-preview--expand{% endif %}
-        colorstyle-{{block.color}}" :class="'myblock-bookmark-preview--' + gridType">
-      {% if block.bookmark.image %}<img src="{{block.bookmark.image}}" /><div class="myblock-bookmark-preview-overlay colorstyle-{{block.color}}"></div>{% endif %}
+        colorstyle-{{block.color}}">
+      {% if block.bookmark.image %}
+        <img src="{{block.bookmark.image}}" />
+        <div class="myblock-bookmark-preview-overlay colorstyle-{{block.color}}"></div>
+      {% endif %}
     </div>
-    <div class="myblock-bookmark-main" :class="'myblock-bookmark-main--' + gridType">
-      <div class="myblock-bookmark-main-info" :class="'myblock-bookmark-main-info--' + gridType">
-        <div class="myblock-bookmark-main-title" :class="'myblock-main-title--' + gridType">{{block.bookmark.title}}</div>
-        <div class="myblock-bookmark-main-desc" :class="'myblock-main-desc--' + gridType">{{block.bookmark.description}}</div>
+    <div class="myblock-bookmark-main">
+      <div class="myblock-bookmark-main-info">
+        <div class="myblock-bookmark-main-title">{{block.bookmark.title}}</div>
+        <div class="myblock-bookmark-main-desc">{{block.bookmark.description}}</div>
       </div>
-      <div class="myblock-bookmark-main-url" :class="'myblock-bookmark-main-url--' + gridType">
+      <div class="myblock-bookmark-main-url">
         <a class="myblock-bookmark-main-url-a" href="{{block.bookmark.url}}" target="_blank" x-on:click.stop>{{block.bookmark.url}}</a>
       </div>
     </div>
   {% else %}
-    <div class="myblock-bookmark-preview colorstyle-{{block.color}}" :class="'myblock-bookmark-preview--' + gridType"></div>
-    <div class="myblock-bookmark-main" :class="'myblock-bookmark-main--' + gridType">
+    <div class="myblock-bookmark-preview colorstyle-{{block.color}}"></div>
+    <div class="myblock-bookmark-main">
       <div>{{block.contents}}</div>
     </div>
   {% endif %}
