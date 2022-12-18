@@ -3,13 +3,25 @@
 {% block main %}
 
 <div key="collection" x-data="{ 'gridType': 'grid', 'collectionId': '{{collection.id}}' }">
-  <div class="px-10 py-4 h-16 flex flex-row">
-    <div class="text-sm flex-1 self-center flex flex-row gap-2 items-center">
+  <div class="px-10 py-4 h-16 flex flex-row items-center">
+    <div class="text-sm self-center flex flex-row gap-2 items-center">
       <a href="/" hx-boost="true">Dashboard</a>
       <div><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
         <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
       </svg></div>
-      <div>{{ collection.title }}</div>
+      <div><a href="/collection/{{collection.id}}" hx-boost="true">{{ collection.title }}</a></div>
+    </div>
+    <div class="flex-1 px-5 flex flex-row justify-center">
+      <div class="flex-1"></div>
+      <div class="relative" style="flex-basis:500px; height: 56px">
+        <div x-data="createSearchHandler('{{collection.id}}')" class="absolute p-2 pin bottom-auto rounded" :class="focus ? 'bg-gray-800' : ''" x-bind="container">
+          <input type="text" name="search" class="darkinput focus:outline-none w-full" placeholder="Search" x-bind="input" />
+          <div x-show="focus" class="mt-2 text-sm">
+            Search tags?
+          </div>
+        </div>
+      </div>
+      <div class="flex-1"></div>
     </div>
     <div class="text-sm">
       <div class="flex flex-row">

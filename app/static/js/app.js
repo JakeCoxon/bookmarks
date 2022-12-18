@@ -131,3 +131,36 @@ const swapBlocks = (target, fragment, blockId) => {
   }
   return els;
 };
+
+const createSearchHandler = (collectionId) => {
+  return {
+    collectionId,
+    focus: false,
+    inputText: "",
+
+    async search() {
+      await htmx.ajax("POST", `/collection/${this.collectionId}/search`, {
+        target: "#pageroot",
+        swap: "morph",
+        values: {
+          search: this.inputText,
+        },
+      });
+    },
+
+    container: {
+      ["x-losefocus"]() {
+        this.focus = false;
+      },
+    },
+    input: {
+      "x-model": "inputText",
+      ["x-on:focus"]() {
+        this.focus = true;
+      },
+      ["x-on:keydown.enter"]() {
+        this.search();
+      },
+    },
+  };
+};

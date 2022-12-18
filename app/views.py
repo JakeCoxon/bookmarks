@@ -16,7 +16,7 @@ from flask import render_template, request, redirect, url_for, flash, make_respo
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
 from app.models import User, Collection, Block, Bookmark, Tag
 from app.controller import (create_bookmark, query_today_blocks, query_collections_and_block_count,
-    query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags)
+    query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags, search_blocks)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
 
 
@@ -221,6 +221,34 @@ def show_collection(collection_id):
     return render_template('show_collection.html', 
         collection=collection, groups=groups, pagination=pagination,
         pinned=pinned, add_form=add_form, make_url=make_url)
+
+@app.route('/collection/<collection_id>/search', methods=['POST'])
+@htmx_required
+def search_collection(collection_id):
+    collection = db.session.query(Collection).get(collection_id)
+    
+    search = request.form.get('search')
+    query = search_blocks(collection_id, search)
+    count = query.count()
+    page = int(request.args.get('page', 1))
+    pagination = query.paginate(page, 50)
+
+    groups = [
+        ('search', f'Search results ({count})', pagination.items)
+    ]
+
+    add_form = AddBookmarkForm(data={'collection_id': collection_id})
+
+    make_url_2 = partial(url_for, 'show_collection', collection_id=collection.id)
+    def make_url(**kwargs):
+        if kwargs.get('page') == 1:
+            kwargs.pop('page')
+        return make_url_2(**kwargs)
+
+    return render_template('show_collection.html', 
+        collection=collection, groups=groups, pagination=pagination,
+        pinned=[], add_form=add_form, make_url=make_url)
+
 
 def group_to_label(group):
     return {'day': "Today", 'week': "This week", 'month': "This month", '3month': "A few months ago", 'year': "This year", 'other': "Older than a year"}[group]
