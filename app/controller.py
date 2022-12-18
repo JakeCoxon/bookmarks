@@ -1,4 +1,5 @@
 import random
+import flask
 from app import db
 from app.models import User, Collection, Block, Bookmark, Counter, Tag
 from sqlalchemy import select, case, func, or_
@@ -22,6 +23,17 @@ def query_blocks_and_time_period(collection_id):
         outerjoin(Bookmark, Bookmark.id == Block.reference_id).
         order_by(Block.created_at.desc())
     )
+
+def get_collection_or_404(collection_id):
+    collection = (
+        db.session.query(Collection)
+        .filter(Collection.deleted_at == None)
+        .filter_by(id=collection_id)
+        .first()
+    )
+    if not collection:
+       flask.abort(404)
+    return collection
 
 def search_blocks(collection_id, search):
     return (
@@ -65,6 +77,7 @@ def query_today_blocks(collection_id):
 def query_collections_and_block_count():
     return (
         db.session.query(Collection, func.count(Block.id))
+        .filter(Collection.deleted_at == None)
         .outerjoin(Block)
         .group_by(Collection)
     )

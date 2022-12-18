@@ -1,0 +1,21 @@
+{% from "render_field.html" import render_field %}
+
+<div sx-custom="openModal" class="modal-content">
+  <form x-data='createForm({ "initialValues": {{form.data|tojson}} })'>
+    <div  class="p-5">
+      <div>Rename '{{collection.title}}'</div>
+      <div class="h-6"></div>
+        {{form.confirm}}
+
+        {{ render_field(form.title) }}
+
+      <div class="h-6"></div>
+      <form>
+        <div class="flex flex-row gap-2">
+          <button type="button" class="w-64" @click="closeModal()">Cancel</button>
+          <button hx-post="{{confirm_url}}" class="darkbutton flex-1">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </form>
+</div>

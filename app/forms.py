@@ -70,6 +70,14 @@ class AddBookmarkForm(FlaskForm):
     title = StringField('Title')
     desc = StringField('Description')
 
+class RenameCollectionForm(FlaskForm):
+
+    Meta = AlpineMeta
+
+    collection_id = HiddenField('')
+    confirm = HiddenField('')
+    title = StringField('New title')
+
 class BookmarkForm(FlaskForm):
 
     Meta = AlpineMeta

@@ -16,12 +16,14 @@
       <div x-show="dropdownMenu" class="absolute py-2 mt-2 bg-gray-600
         right-0 rounded-md shadow-xl w-48" 
         @click.outside="dropdownMenu = false">
-          <button class="dropdownbutton text-right" hx-post="">
+        <form>
+          <button class="dropdownbutton text-right" hx-post="/collection/{{collection.id}}/rename">
               Rename
           </button>
-          <button class="dropdownbutton text-right" hx-post="">
+          <button class="dropdownbutton text-right" hx-post="/collection/{{collection.id}}/delete">
               Delete
           </button>
+        </form>
       </div>
     </div>
 

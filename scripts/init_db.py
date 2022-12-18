@@ -1,6 +1,7 @@
 import random
 from app import db
 from app.models import User, Collection, Block, Bookmark, Counter, Tag
+from app.controller import create_collection, create_bookmark, create_block
 from sqlalchemy import select, case, func
 from datetime import datetime, timedelta
 

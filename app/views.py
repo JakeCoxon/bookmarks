@@ -13,9 +13,9 @@ from flask import json
 from app import app, db
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, make_response, Markup
-from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm
+from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm, RenameCollectionForm
 from app.models import User, Collection, Block, Bookmark, Tag
-from app.controller import (create_bookmark, query_today_blocks, query_collections_and_block_count,
+from app.controller import (get_collection_or_404, create_bookmark, query_today_blocks, query_collections_and_block_count,
     query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags, search_blocks)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
 
@@ -43,7 +43,7 @@ def create_bookmark_view():
     data = request.form
 
     collection_id = data['collection_id']
-    col = Collection.query.get(collection_id)
+    col = get_collection_or_404(collection_id)
 
     title = data.get('title')
     bk = create_bookmark(title=title, description=data['desc'], 
@@ -77,7 +77,6 @@ def save_bookmark_view():
     bl = query.first()
 
     if bl.bookmark:
-        print(data.getlist('tags'))
 
         title = data.get('title')
         bl.bookmark.title = title
@@ -162,12 +161,17 @@ def delete_block_multiple(collection_id):
     ids = request.form.getlist('ids')
     blocks = query_multiple_ids(collection_id, ids)
 
-    print(ids)
-
     if not request.form.get('confirm'):
-        return render_template('modal_confirm_delete.html',
-            blocks=blocks, collection_id=collection_id)
-
+        return render_template('modal_confirmation.html', 
+            title=f"Confirm ?",
+            description=(
+                f"This will delete 1 block. It can be recovered in the trash"
+                if blocks.count() == 1 else
+                f"This will delete {blocks.count()} blocks. They can be recovered in the trash"
+            ), 
+            confirm_url=f"/collection/{collection_id}/delete-multi",
+            ids=[bl.id for bl in blocks],
+            collection_id=collection_id)
 
     for bl in blocks:
         bl.deleted_at = datetime.now()
@@ -175,18 +179,6 @@ def delete_block_multiple(collection_id):
     db.session.commit()
     flash(Toast.success(f"Deleted {blocks.count()} blocks"))
     return htmx_redirect(f'/collection/{collection_id}')
-
-@app.route('/block/<block_id>/delete', methods=['POST'])
-@htmx_required
-def delete_block(block_id):
-
-    bl = Block.query.get(block_id)
-    bl.deleted_at = datetime.now()
-    
-    db.session.commit()
-    flash(Toast.success("Block deleted"))
-    return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
-
 
 @app.route('/create-collection', methods=['POST'])
 @htmx_required
@@ -200,14 +192,13 @@ def create_collection():
 @app.route('/collection/<collection_id>')
 @htmx_optional
 def show_collection(collection_id):
-    collection = db.session.query(Collection).get(collection_id)
+    collection = get_collection_or_404(collection_id)
 
     query = query_blocks_and_time_period(collection_id)
     page = int(request.args.get('page', 1))
     pagination = query.paginate(page, 50)
 
     pinned = list(query_pinned(collection_id)) if page == 1 else []
-
     groups = group_by_date(pagination.items)
 
     add_form = AddBookmarkForm(data={'collection_id': collection_id})
@@ -222,10 +213,55 @@ def show_collection(collection_id):
         collection=collection, groups=groups, pagination=pagination,
         pinned=pinned, add_form=add_form, make_url=make_url)
 
+@app.route('/collection/<collection_id>/delete', methods=['POST'])
+@htmx_required
+def delete_collection(collection_id):
+    collection = get_collection_or_404(collection_id)
+    num_blocks = (db.session.query(Block).
+        filter_by(ancestor_collection_id=collection_id).
+        filter(Block.deleted_at == None).
+        count())
+
+    should_confirm = num_blocks > 0
+
+    if should_confirm and not request.form.get('confirm'):
+        blocks_label = '1 block' if num_blocks == 1 else f'{num_blocks} blocks'
+        return render_template('modal_confirmation.html', 
+            title=f"Confirm ?",
+            description=f"""This will delete the collection '{collection.title}' along 
+                with {blocks_label}. They can be recovered in the trash""", 
+            confirm_url=f"/collection/{collection_id}/delete",
+            collection_id=collection_id)
+
+    collection.deleted_at = datetime.now()
+    db.session.commit()
+    
+    flash(Toast.success(f"'{collection.title}' deleted"))
+    return htmx_redirect(url_for('home'))
+
+@app.route('/collection/<collection_id>/rename', methods=['POST'])
+@htmx_required
+def rename_collection(collection_id):
+    collection = get_collection_or_404(collection_id)
+
+    form = RenameCollectionForm(formdata=request.form, obj=collection)
+    print(request.form)
+    print(form.confirm.data)
+
+    if form.confirm.data is None:
+        return render_template('modal_rename.html', 
+            form=form,
+            confirm_url=f"/collection/{collection_id}/rename",
+            collection=collection)
+
+    flash(Toast.success(f"'{collection.title}' deleted"))
+    return htmx_redirect(url_for('show_collection', collection_id=collection_id))
+
+        
 @app.route('/collection/<collection_id>/search', methods=['POST'])
 @htmx_required
 def search_collection(collection_id):
-    collection = db.session.query(Collection).get(collection_id)
+    collection = get_collection_or_404(collection_id)
     
     search = request.form.get('search')
     query = search_blocks(collection_id, search)
@@ -287,6 +323,7 @@ def add_header(response):
 
 
 @app.errorhandler(404)
+@htmx_optional
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404

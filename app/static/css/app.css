@@ -66,9 +66,9 @@ textarea::placeholder {
     background: rgba(0, 0, 0, 0.8);
   }
   &-content {
-    composes: bg-gray-800 shadow-lg;
+    composes: bg-gray-800 shadow-lg rounded;
     width: 600px;
-    height: 400px;
+    min-height: 200px;
   }
 }
 

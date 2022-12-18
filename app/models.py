@@ -89,6 +89,7 @@ class Collection(db.Model):
     owner = db.Column(db.String(255), db.ForeignKey("users.id"))
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    deleted_at = db.Column(db.DateTime)
 
     def __repr__(self):
         return '<Collection %r parent=%r>' % (self.id, 0)
@@ -107,6 +108,7 @@ class Bookmark(db.Model):
 
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    deleted_at = db.Column(db.DateTime)
 
     def __repr__(self):
         return '<Bookmark %r url=%r>' % (self.id, self.url)

@@ -30,9 +30,12 @@
               Pin
           </button>
         {% endif %}
-        <button class="dropdownbutton text-right" hx-post="/block/{{block.id}}/delete">
-            Delete
-        </button>
+        <form>
+          <input type="hidden" name="ids" value="{{block.id}}" />
+          <button class="dropdownbutton text-right" hx-post="/collection/{{block.ancestor_collection_id}}/delete-multi">
+              Delete
+          </button>
+        </form>
       </div>
     </div>
 

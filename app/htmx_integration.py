@@ -8,7 +8,11 @@ from flask import json
 def htmx_optional(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        return htmx_wrap_layout(f(*args, **kwargs))
+        code = 200
+        body = f(*args, **kwargs)
+        if type(body) is tuple:
+            body, code = body
+        return htmx_wrap_layout(body), code
     return decorated_function
 
 def htmx_required(f):
