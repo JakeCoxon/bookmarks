@@ -32,8 +32,11 @@
         {% endif %}
         <form>
           <input type="hidden" name="ids" value="{{block.id}}" />
-          <button class="dropdownbutton text-right" hx-post="/collection/{{block.ancestor_collection_id}}/delete-multi">
-              Delete
+          <button class="dropdownbutton text-right" hx-post="{{url_for('copy_blocks', collection_id=block.ancestor_collection_id)}}">
+              Copy/move
+          </button>
+          <button class="dropdownbutton text-right" hx-post="{{url_for('remove_blocks', collection_id=block.ancestor_collection_id)}}">
+              Remove
           </button>
         </form>
       </div>

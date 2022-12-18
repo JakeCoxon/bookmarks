@@ -16,11 +16,12 @@
       {% endfor %}
 
       <div class="flex flex-col gap-2">
-        <div><button class="darkbutton w-full text-left">Remove from collection</button></div>
-        <div><button class="darkbutton w-full text-left">Copy to another collection</button></div>
+        <div>
+          <button class="darkbutton w-full text-left" hx-post="{{url_for('copy_blocks', collection_id=collection_id)}}">Copy/move to another collection</button>
+        </div>
         <div><button class="darkbutton w-full text-left">Manage tags</button></div>
         <div>
-          <button class="darkbutton w-full text-left" hx-post="/collection/{{collection_id}}/delete-multi">Delete</button>
+          <button class="darkbutton w-full text-left" hx-post="{{url_for('remove_blocks', collection_id=collection_id)}}">Remove</button>
         </div>
       </div>
     </form>

@@ -10,7 +10,7 @@ import flask
 
 from functools import partial
 from flask import json
-from app import app, db
+from app import app, db, forms
 from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, make_response, Markup
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm, RenameCollectionForm
@@ -154,10 +154,11 @@ def set_pinned(block_id):
 
     return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
 
-@app.route('/collection/<collection_id>/delete-multi', methods=['POST'])
+@app.route('/collection/<collection_id>/remove-blocks', methods=['POST'])
 @htmx_required
-def delete_block_multiple(collection_id):
+def remove_blocks(collection_id):
 
+    collection_title = get_collection_or_404(collection_id).title
     ids = request.form.getlist('ids')
     blocks = query_multiple_ids(collection_id, ids)
 
@@ -165,11 +166,11 @@ def delete_block_multiple(collection_id):
         return render_template('modal_confirmation.html', 
             title=f"Confirm ?",
             description=(
-                f"This will delete 1 block. It can be recovered in the trash"
+                f"This will remove 1 block from the collection '{collection_title}'. It can be recovered in the trash"
                 if blocks.count() == 1 else
-                f"This will delete {blocks.count()} blocks. They can be recovered in the trash"
+                f"This will delete {blocks.count()} blocks from the collection '{collection_title}'. They can be recovered in the trash"
             ), 
-            confirm_url=f"/collection/{collection_id}/delete-multi",
+            confirm_url=url_for('remove_blocks', collection_id=collection_id),
             ids=[bl.id for bl in blocks],
             collection_id=collection_id)
 
@@ -177,8 +178,53 @@ def delete_block_multiple(collection_id):
         bl.deleted_at = datetime.now()
     
     db.session.commit()
-    flash(Toast.success(f"Deleted {blocks.count()} blocks"))
-    return htmx_redirect(f'/collection/{collection_id}')
+    flash(Toast.success(f"Removed {blocks.count()} blocks"))
+    return htmx_redirect(url_for('show_collection', collection_id=collection_id))
+
+@app.route('/collection/<collection_id>/copy-blocks', methods=['POST'])
+@htmx_required
+def copy_blocks(collection_id):
+    collection = get_collection_or_404(collection_id)
+
+    collection_title = get_collection_or_404(collection_id).title
+    ids = request.form.getlist('ids')
+    blocks = query_multiple_ids(collection_id, ids)
+
+    collections = (db.session.query(Collection)
+        .filter(Collection.id != collection_id)).all()
+    form = forms.CopyBlocksForm(formdata=request.form, collections=collections)
+
+    def handle():
+        if form.confirm.data is None:
+            return False
+
+        collection_ids = form.collections.data
+        collections = (db.session.query(Collection)
+            .filter(Collection.id.in_(collection_ids))).all()
+        print(collections)
+
+        if not collections:
+            flash(Toast.error(f"Select at least one"))
+            return False
+
+        flash(Toast.error(f"Not supported yet"))
+        #collections
+        # for bl in blocks:
+        #     bl.deleted_at = datetime.now()
+        
+        #flash(Toast.success(f"Copied {blocks.count()} blocks"))
+        db.session.commit()
+        return True
+
+    result = handle()
+
+    if not result:
+        return render_template('modal_copy.html', 
+            existing_collection=collection,
+            blocks=blocks, form=form,
+            confirm_url=url_for('copy_blocks', collection_id=collection_id))
+
+    return htmx_redirect(url_for('show_collection', collection_id=collection_id))
 
 @app.route('/create-collection', methods=['POST'])
 @htmx_required
@@ -245,8 +291,6 @@ def rename_collection(collection_id):
     collection = get_collection_or_404(collection_id)
 
     form = RenameCollectionForm(formdata=request.form, obj=collection)
-    print(request.form)
-    print(form.confirm.data)
 
     if form.confirm.data is None:
         return render_template('modal_rename.html', 
@@ -254,6 +298,8 @@ def rename_collection(collection_id):
             confirm_url=f"/collection/{collection_id}/rename",
             collection=collection)
 
+    collection.title = form.title.data
+    db.session.commit()
     flash(Toast.success(f"'{collection.title}' deleted"))
     return htmx_redirect(url_for('show_collection', collection_id=collection_id))
 

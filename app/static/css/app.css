@@ -125,6 +125,28 @@ pre {
   }
 }
 
+.switchinput {
+  composes: relative display-inline-block w-10 mr-2 align-middle select-none;
+
+  &-input {
+    composes: absolute display-block w-6 h-6 rounded-full bg-white appearance-none cursor-pointer;
+    border-width: 4px;
+    border-color: #5f7186;
+  }
+  &-toggle {
+    composes: display-block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer;
+    background: #5f7186;
+  }
+
+  &-input:checked {
+    right: 0;
+    border-color: #288d60; // emerald-500
+  }
+  &-input:checked + &-toggle {
+    background-color: #288d60; // emerald-500
+  }
+}
+
 .editform {
   &-input {
     composes: bg-gray-800 border-0 text-white mb-4 mt-1 p-2;

@@ -97,13 +97,15 @@ htmx.defineExtension("bookmark-custom-swap", {
 });
 
 const openModal = (elt, fragment) => {
-  const text = fragment.outerHTML;
   const modal = Alpine.store("modal");
   const target = modal.$el.querySelector("#modal-content");
   if (!target) throw new Error(`Missing modal element`);
+  modal.openModal();
+  // Make sure to generate a fresh key if its a new modal window
+  fragment.setAttribute("key", modal.modalKey);
+  const text = fragment.outerHTML;
   const result = Alpine.morph(target, text, customMorphSettings);
   result.setAttribute("id", "modal-content");
-  modal.showModal = true;
   return [result];
 };
 

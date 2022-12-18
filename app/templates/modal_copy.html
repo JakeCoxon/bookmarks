@@ -1,0 +1,28 @@
+{% from "render_field.html" import render_field %}
+
+<div sx-custom="openModal" class="modal-content">
+  <form x-data='createForm({ "initialValues": {{form.data|tojson}} })'>
+    {{form.confirm}}
+    {% for bl in blocks %}
+      <input type="hidden" name="ids" value="{{bl.id}}" />
+    {% endfor %}
+    <div class="p-5">
+      <div>Copy blocks</div>
+      <div class="h-6"></div>
+      <div>This will copy {{blocks.count()}} blocks to the following collections</div>
+      <div class="h-6"></div>
+      <div class="flex flex-col gap-2">
+
+        {{ render_field(form.collections) }}
+        {{ render_field(form.also_remove, label="Also remove from '" ~ existing_collection.title ~ "'") }}
+      </div>
+      <div class="h-6"></div>
+      <form>
+        <div class="flex flex-row gap-2">
+          <button type="button" class="w-64" @click="closeModal()">Cancel</button>
+          <button hx-post="{{confirm_url}}" class="darkbutton flex-1">Confirm</button>
+        </div>
+      </form>
+    </div>
+  </form>
+</div>

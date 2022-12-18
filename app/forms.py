@@ -1,7 +1,7 @@
 from flask import Markup, render_template
 from flask_wtf import FlaskForm
 from wtforms import StringField, HiddenField, TextAreaField, RadioField, BooleanField, SelectMultipleField
-from wtforms.widgets.core import ListWidget, RadioInput
+from wtforms.widgets.core import ListWidget, RadioInput, CheckboxInput, Input
 from wtforms.validators import InputRequired
 from wtforms.meta import DefaultMeta
 
@@ -57,6 +57,33 @@ ColorField = RadioField('Color',
         ('gradient5', ''),
     ])
 
+class ToggleSwitchInput(Input):
+    custom = True
+    def __call__(self, field, **kwargs):
+        label = kwargs.get('label', field.label)
+        name = field.name
+        return Markup(f"""
+        
+        <div class="flex flex-row items-center">
+            <div class="switchinput">
+                <input type="checkbox" name="{name}" id="{field.id}" class="switchinput-input"/>
+                <label for="{field.id}" class="switchinput-toggle"></label>
+            </div>
+            <label for="{field.id}" class="cursor-pointer">{label}</label>
+        </div>
+  
+        """)
+
+class MultiCheckboxField(SelectMultipleField):
+    """
+    A multiple-select, except displays a list of checkboxes.
+
+    Iterating the field will produce subfields, allowing custom rendering of
+    the enclosed checkbox fields.
+    """
+    widget = ListWidget(prefix_label=False)
+    option_widget = CheckboxInput()
+
 def TagsInput(field, **kwargs):
     kwargs['request_url'] = kwargs['request_url'] or '' 
     return Markup(render_template("field_tags.html", field=field, **kwargs))
@@ -77,6 +104,18 @@ class RenameCollectionForm(FlaskForm):
     collection_id = HiddenField('')
     confirm = HiddenField('')
     title = StringField('New title')
+
+class CopyBlocksForm(FlaskForm):
+
+    Meta = AlpineMeta
+
+    collections = MultiCheckboxField('To collection')
+    also_remove = BooleanField('Also remove', widget=ToggleSwitchInput())
+    confirm = HiddenField('')
+
+    def __init__(self, *args, collections, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.collections.choices = [(col.id, col.title) for col in collections]
 
 class BookmarkForm(FlaskForm):
 

@@ -111,6 +111,7 @@ const createToastsHandler = () => {
 const createModalHandler = () => {
   return {
     showModal: false,
+    modalKey: null,
     modalElement: null,
     init() {
       document.addEventListener("htmx:pushedIntoHistory", () => {
@@ -121,10 +122,13 @@ const createModalHandler = () => {
       });
     },
     openModal() {
+      if (this.showModal) return;
       this.showModal = true;
+      this.modalKey = String(Date.now());
     },
     closeModal() {
       this.showModal = false;
+      this.modalKey = null;
     },
   };
 };

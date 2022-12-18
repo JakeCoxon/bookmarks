@@ -1,10 +1,11 @@
 {% macro render_field(field) %}
 
   {% if field.widget.input_type == 'hidden' %}{{field(**kwargs)}}
+  {% elif field.widget.custom %}{{field(**kwargs)}}
   {% else %}
 
     <div>
-      <div class="mb-1">{{ field.label }}</div>
+      <div class="mb-1">{{ kwargs.get('label', field.label) }}</div>
       {{field(class="darkinput w-full", **kwargs)}}
     
     {% if field.errors %}
