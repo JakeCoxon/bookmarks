@@ -117,6 +117,13 @@ class CopyBlocksForm(FlaskForm):
         super().__init__(*args, **kwargs)
         self.collections.choices = [(col.id, col.title) for col in collections]
 
+class ManageTagsForm(FlaskForm):
+
+    Meta = AlpineMeta
+
+    confirm = HiddenField('')
+    tags = SelectMultipleField('Common tags', choices=[], widget=TagsInput)
+
 class BookmarkForm(FlaskForm):
 
     Meta = AlpineMeta

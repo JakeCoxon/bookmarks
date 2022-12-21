@@ -15,6 +15,7 @@ from datetime import datetime
 from flask import render_template, request, redirect, url_for, flash, make_response, Markup
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm, RenameCollectionForm
 from app.models import User, Collection, Block, Bookmark, Tag
+from app import controller as query
 from app.controller import (get_collection_or_404, create_bookmark, query_today_blocks, query_collections_and_block_count,
     query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags, search_blocks, create_block)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
@@ -110,6 +111,7 @@ def sidebar(collection_id):
 
     time.sleep(0.1)
     ids = request.form.getlist('ids')
+    tag_autocomplete_url = url_for('tags_autocomplete', collection_id=collection_id)
 
     query = query_multiple_ids(collection_id, ids)
     blocks = query.all()
@@ -117,11 +119,13 @@ def sidebar(collection_id):
         block = blocks[0]
         FormType = BookmarkForm if block.bookmark else NoteForm
         form = FormType.from_block(block, formdata=None)
+        if block.bookmark:
+            form.tags.render_kw = {'request_url': tag_autocomplete_url}
 
         return render_template('sidebar_single.html', block=block, form=form)
     return render_template('sidebar_multi.html', blocks=blocks, collection_id=collection_id)
 
-@app.route('/collection/<collection_id>/tags', methods=['POST'])
+@app.route('/collection/<collection_id>/tags-autocomplete', methods=['POST'])
 @htmx_required
 def tags_autocomplete(collection_id):
 
@@ -154,6 +158,7 @@ def set_pinned(block_id):
 
     return htmx_redirect(f'/collection/{bl.ancestor_collection_id}')
 
+
 @app.route('/collection/<collection_id>/remove-blocks', methods=['POST'])
 @htmx_required
 def remove_blocks(collection_id):
@@ -180,6 +185,7 @@ def remove_blocks(collection_id):
     db.session.commit()
     flash(Toast.success(f"Removed {blocks.count()} blocks"))
     return htmx_redirect(url_for('show_collection', collection_id=collection_id))
+
 
 @app.route('/collection/<collection_id>/copy-blocks', methods=['POST'])
 @htmx_required
@@ -236,6 +242,7 @@ def copy_blocks(collection_id):
 
     return htmx_redirect(url_for('show_collection', collection_id=collection_id))
 
+
 @app.route('/create-collection', methods=['POST'])
 @htmx_required
 def create_collection():
@@ -244,6 +251,7 @@ def create_collection():
     db.session.commit()
     flash(Toast.success("New collection created"))
     return htmx_redirect(f"/collection/{col.id}")
+
 
 @app.route('/collection/<collection_id>')
 @htmx_optional
@@ -268,6 +276,7 @@ def show_collection(collection_id):
     return render_template('show_collection.html', 
         collection=collection, groups=groups, pagination=pagination,
         pinned=pinned, add_form=add_form, make_url=make_url)
+
 
 @app.route('/collection/<collection_id>/delete', methods=['POST'])
 @htmx_required
@@ -295,6 +304,7 @@ def delete_collection(collection_id):
     flash(Toast.success(f"'{collection.title}' deleted"))
     return htmx_redirect(url_for('home'))
 
+
 @app.route('/collection/<collection_id>/rename', methods=['POST'])
 @htmx_required
 def rename_collection(collection_id):
@@ -310,7 +320,57 @@ def rename_collection(collection_id):
 
     collection.title = form.title.data
     db.session.commit()
-    flash(Toast.success(f"'{collection.title}' deleted"))
+    flash(Toast.success(f"'{collection.title}' renamed"))
+    return htmx_redirect(url_for('show_collection', collection_id=collection_id))
+
+
+@app.route('/collection/<collection_id>/tags', methods=['POST'])
+@htmx_required
+def manage_tags(collection_id):
+    tag_autocomplete_url = url_for('tags_autocomplete', collection_id=collection_id)
+    
+    collection = get_collection_or_404(collection_id)
+
+    ids = request.form.getlist('ids')
+    blocks = query_multiple_ids(collection_id, ids)
+
+    tags = query.query_common_tags(ids).all()
+    common_tags = [label for label, count in tags if count == len(ids)]
+    uncommon_tags = [label for label, count in tags if count != len(ids)]
+
+    confirmed = request.form.get('confirm') is not None
+    form = forms.ManageTagsForm(formdata=request.form if confirmed else None, data={'tags': common_tags})
+    form.tags.render_kw = {'request_url': tag_autocomplete_url}
+
+    if form.confirm.data is None:
+        return render_template('modal_tags.html', 
+            form=form,
+            uncommon_tags=uncommon_tags,
+            confirm_url=f"/collection/{collection_id}/tags",
+            collection=collection, blocks=blocks)
+
+    new_tag_set = set(request.form.getlist('tags'))
+    old_tag_set = set(common_tags)
+    
+    added = 0
+    removed = 0
+    for bl in blocks:
+        if bl.bookmark:
+            existing_tag_set = set([x.label for x in bl.bookmark.tags])
+
+            to_remove = old_tag_set.difference(new_tag_set)
+            for tag in bl.bookmark.tags:
+                if tag.label in to_remove:
+                    db.session.delete(tag)
+                    removed += 1
+
+            to_add = new_tag_set.difference(old_tag_set).difference(existing_tag_set)
+            for label in to_add:
+                db.session.add(Tag(label=label, bookmark_id=bl.bookmark.id))
+                added += 1
+
+    db.session.commit()
+    flash(Toast.success(f"{added} tags added, {removed} tags removed"))
     return htmx_redirect(url_for('show_collection', collection_id=collection_id))
 
         

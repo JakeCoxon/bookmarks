@@ -29,8 +29,8 @@
     <div x-data="$store.modal">
       <div x-show="showModal" class="modal-backdrop"
           data-no-click-through
-          @keyup.escape.window="showModal = false">
-        <div style="width:min-content; height:min-content" @click.away="showModal = false">
+          @keydown.escape.window="closeModal()">
+        <div style="width:min-content; height:min-content" @click.away="closeModal()">
           <div id="modal-content"></div>
         </div>
       </div>

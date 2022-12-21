@@ -160,19 +160,25 @@ const createTagHandler = (initial, requestUrl) => {
       this.tagInput = "";
     },
     addFromInput() {
+      if (!this.tagInput.length) return;
       if (this.tags.includes(this.tagInput)) return;
       this.tags.push(this.tagInput);
       this.tagInput = "";
     },
     container: {
       ["x-on:keydown.escape"]() {
-        this.showAutoComplete = false;
+        if (this.showAutoComplete) {
+          this.showAutoComplete = false;
+          this.$event.stopPropagation();
+        }
       },
       ["x-on:click.away"]() {
         this.showAutoComplete = false;
+        this.addFromInput();
       },
       ["x-losefocus"]() {
         this.showAutoComplete = false;
+        this.addFromInput();
       },
     },
     refetch() {
@@ -204,7 +210,7 @@ const createTagHandler = (initial, requestUrl) => {
         this.showAutoComplete = true;
         this.refetch();
       },
-      ["x-on:keydown"]() {
+      ["x-on:keypress"]() {
         this.showAutoComplete = true;
         this.refetch();
       },

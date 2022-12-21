@@ -64,8 +64,7 @@
         {% if block.bookmark.image %}
         <img src="{{block.bookmark.image}}" />
         {% endif %}
-        {{ render_field(form.tags, 
-          request_url=url_for('tags_autocomplete', collection_id=block.ancestor_collection_id)) }}
+        {{ render_field(form.tags) }}
         {{ render_field(form.desc) }}
         {{ render_field(form.notes) }}
         

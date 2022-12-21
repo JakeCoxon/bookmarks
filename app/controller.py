@@ -2,7 +2,7 @@ import random
 import flask
 from app import db
 from app.models import User, Collection, Block, Bookmark, Counter, Tag
-from sqlalchemy import select, case, func, or_
+from sqlalchemy import select, case, func, or_, and_, distinct
 from datetime import datetime, timedelta
 
 
@@ -98,6 +98,15 @@ def query_tags(collection_id, given_tags, input):
         filter(Tag.label.contains(input)).
         distinct(Tag.label)
     )
+
+def query_common_tags(block_ids):
+    stmt = select([Tag.label, func.count(distinct(Block.id))]).where(and_(
+        Tag.bookmark_id == Bookmark.id,
+        Block.reference_id == Bookmark.id,
+        Block.id.in_(block_ids)
+    )).group_by(Tag.label)
+
+    return db.session.execute(stmt)
 
 def create_collection(title):
     collection = Collection(title=title)
