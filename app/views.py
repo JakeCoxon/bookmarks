@@ -16,7 +16,7 @@ from flask import render_template, request, redirect, url_for, flash, make_respo
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm, RenameCollectionForm
 from app.models import User, Collection, Block, Bookmark, Tag
 from app.controller import (get_collection_or_404, create_bookmark, query_today_blocks, query_collections_and_block_count,
-    query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags, search_blocks)
+    query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags, search_blocks, create_block)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
 
 
@@ -191,7 +191,8 @@ def copy_blocks(collection_id):
     blocks = query_multiple_ids(collection_id, ids)
 
     collections = (db.session.query(Collection)
-        .filter(Collection.id != collection_id)).all()
+        .filter(Collection.id != collection_id)
+        .filter(Collection.deleted_at == None)).all()
     form = forms.CopyBlocksForm(formdata=request.form, collections=collections)
 
     def handle():
@@ -207,13 +208,22 @@ def copy_blocks(collection_id):
             flash(Toast.error(f"Select at least one"))
             return False
 
-        flash(Toast.error(f"Not supported yet"))
-        #collections
-        # for bl in blocks:
-        #     bl.deleted_at = datetime.now()
-        
-        #flash(Toast.success(f"Copied {blocks.count()} blocks"))
+        num_created = 0
+        for collection in collections:
+            for bl in blocks:
+                if bl.bookmark:
+                    create_block(bl.contents, bl.bookmark, collection=collection)
+                else:
+                    create_block(bl.contents, None, collection=collection)
+                num_created += 1
+
+        if form.also_remove.data:
+            for bl in blocks:
+                bl.deleted_at = datetime.now()
+
         db.session.commit()
+        
+        flash(Toast.success(f"{num_created} new blocks in {len(collections)} collections"))
         return True
 
     result = handle()
