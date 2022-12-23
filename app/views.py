@@ -8,6 +8,8 @@ This file creates your application.
 import time
 import flask
 
+import hashlib
+from urllib.parse import urlencode
 from functools import partial
 from flask import json
 from app import app, db, forms
@@ -32,7 +34,7 @@ def home():
     for col, count in query_result:
         col.block_count = count
 
-    return render_template('home.html', collections=collections)
+    return render_template('home.html', collections=collections, avatar=avatar())
 
 @app.route('/create', methods=['POST'])
 @htmx_required
@@ -185,7 +187,6 @@ def remove_blocks(collection_id):
     flash(Toast.success(f"Removed {blocks.count()} blocks"))
     return htmx_redirect(url_for('show_collection', collection_id=collection_id))
 
-
 @app.route('/collection/<collection_id>/copy-blocks', methods=['POST'])
 @htmx_required
 @login_required
@@ -255,6 +256,15 @@ def create_collection():
     return htmx_redirect(f"/collection/{col.id}")
 
 
+def avatar():
+    email = current_user.email
+    default = "https://www.example.com/default.jpg"
+
+    gravatar_url = "https://www.gravatar.com/avatar/" + hashlib.md5(email.lower().encode("utf-8")).hexdigest() + "?"
+    gravatar_url += urlencode({'d':default, 's':str(26)})
+    return gravatar_url
+
+
 @app.route('/collection/<collection_id>')
 @htmx_optional
 @login_required
@@ -278,7 +288,7 @@ def show_collection(collection_id):
 
     return render_template('show_collection.html', 
         collection=context.collection, groups=groups, pagination=pagination,
-        pinned=pinned, add_form=add_form, make_url=make_url)
+        pinned=pinned, add_form=add_form, make_url=make_url, avatar=avatar())
 
 
 @app.route('/collection/<collection_id>/delete', methods=['POST'])
@@ -409,7 +419,7 @@ def search_collection(collection_id):
 
     return render_template('show_collection.html', 
         collection=context.collection, groups=groups, pagination=pagination,
-        pinned=[], add_form=add_form, make_url=make_url)
+        pinned=[], add_form=add_form, make_url=make_url, avatar=avatar())
 
 
 def group_to_label(group):
