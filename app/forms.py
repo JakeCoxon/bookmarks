@@ -1,6 +1,6 @@
 from flask import Markup, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, HiddenField, TextAreaField, RadioField, BooleanField, SelectMultipleField
+from wtforms import StringField, HiddenField, TextAreaField, RadioField, BooleanField, SelectMultipleField, PasswordField
 from wtforms.widgets.core import ListWidget, RadioInput, CheckboxInput, Input
 from wtforms.validators import InputRequired
 from wtforms.meta import DefaultMeta
@@ -8,6 +8,11 @@ from wtforms.meta import DefaultMeta
 class UserForm(FlaskForm):
     name = StringField('Name', validators=[InputRequired()])
     email = StringField('Email', validators=[InputRequired()])
+
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[InputRequired()])
+    password = PasswordField('Password', validators=[InputRequired()])
 
 
 class AlpineMeta(DefaultMeta):

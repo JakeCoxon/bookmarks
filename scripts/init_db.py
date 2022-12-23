@@ -13,7 +13,11 @@ def init_db():
     db.session.commit()
     db.session.flush()
 
-    collection1 = create_collection("Inbox")
+    user = User(name="Jake", email="jake.coxon@gmail.com", password="sha256$eg2fZ9epajGPISkf$c209522e54e7155e95fbc28ea59d88446328a47a62deca73ab6dde64e185be1d")
+    db.session.add(user)
+    db.session.flush()
+
+    collection1 = create_collection("Inbox", owner=user.id)
 
     bookmarks = []
 

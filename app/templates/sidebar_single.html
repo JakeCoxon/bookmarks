@@ -47,7 +47,7 @@
   <div class="py-4 px-6">
     <form key="{{block.id}}" class="editform"
       x-data='createForm({ "initialValues": {{form.data|tojson}} })'
-      method="POST" action="/save" hx-boost="true" 
+      method="POST" action="{{url_for('save_bookmark_view', collection_id=collection_id)}}" hx-boost="true" 
       hx-swap="bookmarkCustomSwap" hx-push-url="false"
       x-bind="form">
 

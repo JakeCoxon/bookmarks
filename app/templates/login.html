@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "render_field.html" import render_field %}
+
+{% block main %}
+<div style="width: 500px" class="m-auto pt-64">
+  <form x-data='createForm({ "initialValues": {{form.data|tojson}} })'>
+    <div  class="p-5 gap-2">
+      <div class="h-6"></div>
+
+      {{ render_field(form.email) }}
+      <div class="h-2"></div>
+      {{ render_field(form.password) }}
+
+      <div class="h-6"></div>
+      <form>
+        <div class="flex flex-row gap-2">
+          <button hx-post="{{confirm_url}}" class="darkbutton flex-1">Login</button>
+        </div>
+      </form>
+    </div>
+  </form>
+</div>
+{% endblock %}

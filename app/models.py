@@ -1,20 +1,10 @@
 from app import db
+from flask_login import UserMixin
 from sqlalchemy.orm import backref
 from sqlalchemy import select
 from sqlalchemy.sql import expression, functions
 import sqlalchemy
 from datetime import datetime
-
-class User(db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.String(255), primary_key=True)
-    name = db.Column(db.String(255))
-    email = db.Column(db.String(255), unique=True)
-
-    collections = db.relationship("Collection")
-
-    def __repr__(self):
-        return '<User %r>' % self.name
 
 class Counter(db.Model):
     __tablename__ = 'counters'
@@ -29,6 +19,20 @@ def default_id(prefix):
         db.session.query(Counter).update({'counter': Counter.counter + 1})
         return f"{prefix}{c}"
     return generate_new_id
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.String(255), primary_key=True, default=default_id('us_'))
+    name = db.Column(db.String(255))
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+
+    collections = db.relationship("Collection")
+
+    def __repr__(self):
+        return '<User %r>' % self.name
+
 
 class Block(db.Model):
     __tablename__ = 'blocks'

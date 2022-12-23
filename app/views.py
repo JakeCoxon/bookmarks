@@ -12,43 +12,41 @@ from functools import partial
 from flask import json
 from app import app, db, forms
 from datetime import datetime
+from flask_login import login_required, current_user
 from flask import render_template, request, redirect, url_for, flash, make_response, Markup
 from app.forms import UserForm, BookmarkForm, NoteForm, AddBookmarkForm, RenameCollectionForm
 from app.models import User, Collection, Block, Bookmark, Tag
 from app import controller as query
-from app.controller import (get_collection_or_404, create_bookmark, query_today_blocks, query_collections_and_block_count,
-    query_multiple_ids, query_blocks_and_time_period, query_pinned, query_tags, search_blocks, create_block)
 from app.htmx_integration import htmx_redirect, Toast, htmx_optional, htmx_required
 
+def create_context(collection_id=None):
+    return query.Context(current_user, collection_id)
 
 @app.route('/')
 @htmx_optional
+@login_required
 def home():
-
-    query = query_collections_and_block_count()
-    collections = [x for x, y in query]
-    for col, count in query:
+    context = create_context()
+    query_result = query.query_collections_and_block_count(context)
+    collections = [x for x, y in query_result]
+    for col, count in query_result:
         col.block_count = count
 
     return render_template('home.html', collections=collections)
 
-@app.route('/empty')
-@htmx_optional
-def home_empty():
-    return render_template('home.html', collections=[])
-
 @app.route('/create', methods=['POST'])
 @htmx_required
+@login_required
 def create_bookmark_view():
+    context = create_context()
 
     data = request.form
 
     collection_id = data['collection_id']
-    col = get_collection_or_404(collection_id)
 
     title = data.get('title')
-    bk = create_bookmark(title=title, description=data['desc'], 
-        url=data['url'], collection=col)
+    bk = query.create_bookmark(title=title, description=data['desc'], 
+        url=data['url'], collection=context.collection)
 
     db.session.flush()
 
@@ -57,25 +55,21 @@ def create_bookmark_view():
 
     flash(Toast.success("New bookmark added"))
 
-    today_blocks = query_today_blocks(collection_id).all()
+    today_blocks = query.query_today_blocks(context).all()
 
     return render_template('collection_group.html',
         group='day', label="Today", blocks=today_blocks)
 
 @app.route('/save', methods=['POST'])
 @htmx_required
-def save_bookmark_view():
+@login_required
+def save_bookmark_view(collection_id):
 
-    time.sleep(0.4)
+    context = create_context(collection_id)
 
     data = request.form
 
-    query = (
-        db.session.query(Block).
-        filter_by(id=data['id']).
-        outerjoin(Bookmark, Bookmark.id == Block.id)
-    )
-    bl = query.first()
+    bl = query_block(context, data['id']).first()
 
     if bl.bookmark:
 
@@ -107,14 +101,15 @@ def save_bookmark_view():
 
 @app.route('/collection/<collection_id>/sidebar', methods=['POST'])
 @htmx_required
+@login_required
 def sidebar(collection_id):
 
-    time.sleep(0.1)
+    context = create_context(collection_id)
     ids = request.form.getlist('ids')
     tag_autocomplete_url = url_for('tags_autocomplete', collection_id=collection_id)
 
-    query = query_multiple_ids(collection_id, ids)
-    blocks = query.all()
+    query_result = query.query_multiple_ids(context, ids)
+    blocks = query_result.all()
     if len(blocks) == 1:
         block = blocks[0]
         FormType = BookmarkForm if block.bookmark else NoteForm
@@ -122,23 +117,26 @@ def sidebar(collection_id):
         if block.bookmark:
             form.tags.render_kw = {'request_url': tag_autocomplete_url}
 
-        return render_template('sidebar_single.html', block=block, form=form)
+        return render_template('sidebar_single.html', block=block, collection_id=collection_id, form=form)
     return render_template('sidebar_multi.html', blocks=blocks, collection_id=collection_id)
 
 @app.route('/collection/<collection_id>/tags-autocomplete', methods=['POST'])
 @htmx_required
+@login_required
 def tags_autocomplete(collection_id):
 
+    context = create_context(collection_id)
     given_tags = request.form.getlist('tags')
     input = request.form.get('input')
 
     found_tags = [x.label for x in 
-        query_tags(collection_id, given_tags, input).limit(10).all()]
+        query.query_tags(context, given_tags, input).limit(10).all()]
 
     return render_template("tag_autocomplete.html", tags=found_tags, input=input)
 
 @app.route('/block/<block_id>/pinned', methods=['POST'])
 @htmx_required
+@login_required
 def set_pinned(block_id):
 
     pinned = request.args.get('pinned') != 'false'
@@ -161,11 +159,12 @@ def set_pinned(block_id):
 
 @app.route('/collection/<collection_id>/remove-blocks', methods=['POST'])
 @htmx_required
+@login_required
 def remove_blocks(collection_id):
-
-    collection_title = get_collection_or_404(collection_id).title
+    context = create_context(collection_id)
+    collection_title = context.collection.title
     ids = request.form.getlist('ids')
-    blocks = query_multiple_ids(collection_id, ids)
+    blocks = query.query_multiple_ids(context, ids)
 
     if not request.form.get('confirm'):
         return render_template('modal_confirmation.html', 
@@ -189,12 +188,14 @@ def remove_blocks(collection_id):
 
 @app.route('/collection/<collection_id>/copy-blocks', methods=['POST'])
 @htmx_required
+@login_required
 def copy_blocks(collection_id):
-    collection = get_collection_or_404(collection_id)
+    context = create_context(collection_id)
+    collection = context.collection
 
-    collection_title = get_collection_or_404(collection_id).title
+    collection_title = collection.title
     ids = request.form.getlist('ids')
-    blocks = query_multiple_ids(collection_id, ids)
+    blocks = query.query_multiple_ids(context, ids)
 
     collections = (db.session.query(Collection)
         .filter(Collection.id != collection_id)
@@ -218,9 +219,9 @@ def copy_blocks(collection_id):
         for collection in collections:
             for bl in blocks:
                 if bl.bookmark:
-                    create_block(bl.contents, bl.bookmark, collection=collection)
+                    query.create_block(bl.contents, bl.bookmark, collection=collection)
                 else:
-                    create_block(bl.contents, None, collection=collection)
+                    query.create_block(bl.contents, None, collection=collection)
                 num_created += 1
 
         if form.also_remove.data:
@@ -245,8 +246,9 @@ def copy_blocks(collection_id):
 
 @app.route('/create-collection', methods=['POST'])
 @htmx_required
+@login_required
 def create_collection():
-    col = Collection(title="New collection")
+    col = Collection(title="New collection", owner=current_user)
     db.session.add(col)
     db.session.commit()
     flash(Toast.success("New collection created"))
@@ -255,33 +257,36 @@ def create_collection():
 
 @app.route('/collection/<collection_id>')
 @htmx_optional
+@login_required
 def show_collection(collection_id):
-    collection = get_collection_or_404(collection_id)
+    context = create_context(collection_id)
 
-    query = query_blocks_and_time_period(collection_id)
+    query_result = query.query_blocks_and_time_period(context)
     page = int(request.args.get('page', 1))
-    pagination = query.paginate(page, 50)
+    pagination = query_result.paginate(page, 50)
 
-    pinned = list(query_pinned(collection_id)) if page == 1 else []
+    pinned = list(query.query_pinned(context)) if page == 1 else []
     groups = group_by_date(pagination.items)
 
     add_form = AddBookmarkForm(data={'collection_id': collection_id})
 
-    make_url_2 = partial(url_for, 'show_collection', collection_id=collection.id)
+    make_url_2 = partial(url_for, 'show_collection', collection_id=collection_id)
     def make_url(**kwargs):
         if kwargs.get('page') == 1:
             kwargs.pop('page')
         return make_url_2(**kwargs)
 
     return render_template('show_collection.html', 
-        collection=collection, groups=groups, pagination=pagination,
+        collection=context.collection, groups=groups, pagination=pagination,
         pinned=pinned, add_form=add_form, make_url=make_url)
 
 
 @app.route('/collection/<collection_id>/delete', methods=['POST'])
 @htmx_required
+@login_required
 def delete_collection(collection_id):
-    collection = get_collection_or_404(collection_id)
+    context = create_context(collection_id)
+    collection = context.collection
     num_blocks = (db.session.query(Block).
         filter_by(ancestor_collection_id=collection_id).
         filter(Block.deleted_at == None).
@@ -307,8 +312,10 @@ def delete_collection(collection_id):
 
 @app.route('/collection/<collection_id>/rename', methods=['POST'])
 @htmx_required
+@login_required
 def rename_collection(collection_id):
-    collection = get_collection_or_404(collection_id)
+    context = create_context(collection_id)
+    collection = context.collection
 
     form = RenameCollectionForm(formdata=request.form, obj=collection)
 
@@ -326,13 +333,15 @@ def rename_collection(collection_id):
 
 @app.route('/collection/<collection_id>/tags', methods=['POST'])
 @htmx_required
+@login_required
 def manage_tags(collection_id):
+    context = create_context(collection_id)
+    collection = context.collection
+
     tag_autocomplete_url = url_for('tags_autocomplete', collection_id=collection_id)
-    
-    collection = get_collection_or_404(collection_id)
 
     ids = request.form.getlist('ids')
-    blocks = query_multiple_ids(collection_id, ids)
+    blocks = query.query_multiple_ids(context, ids)
 
     tags = query.query_common_tags(ids).all()
     common_tags = [label for label, count in tags if count == len(ids)]
@@ -376,14 +385,15 @@ def manage_tags(collection_id):
         
 @app.route('/collection/<collection_id>/search', methods=['POST'])
 @htmx_required
+@login_required
 def search_collection(collection_id):
-    collection = get_collection_or_404(collection_id)
+    context = create_context(collection_id)
     
     search = request.form.get('search')
-    query = search_blocks(collection_id, search)
-    count = query.count()
+    query_result = query.search_blocks(context, search)
+    count = query_result.count()
     page = int(request.args.get('page', 1))
-    pagination = query.paginate(page, 50)
+    pagination = query_result.paginate(page, 50)
 
     groups = [
         ('search', f'Search results ({count})', pagination.items)
@@ -391,14 +401,14 @@ def search_collection(collection_id):
 
     add_form = AddBookmarkForm(data={'collection_id': collection_id})
 
-    make_url_2 = partial(url_for, 'show_collection', collection_id=collection.id)
+    make_url_2 = partial(url_for, 'show_collection', collection_id=collection_id)
     def make_url(**kwargs):
         if kwargs.get('page') == 1:
             kwargs.pop('page')
         return make_url_2(**kwargs)
 
     return render_template('show_collection.html', 
-        collection=collection, groups=groups, pagination=pagination,
+        collection=context.collection, groups=groups, pagination=pagination,
         pinned=[], add_form=add_form, make_url=make_url)
 
 
@@ -443,7 +453,3 @@ def add_header(response):
 def page_not_found(error):
     """Custom 404 page."""
     return render_template('404.html'), 404
-
-
-if __name__ == '__main__':
-    app.run(debug=True,host="0.0.0.0",port="8080")

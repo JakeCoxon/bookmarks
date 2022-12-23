@@ -2,7 +2,7 @@ import flask
 from functools import wraps
 from functools import partial
 from app import app
-from flask import render_template, request, flash, make_response, get_flashed_messages, Markup
+from flask import render_template, request, flash, make_response, get_flashed_messages, Markup, redirect, Response
 from flask import json
 
 def htmx_optional(f):
@@ -12,6 +12,8 @@ def htmx_optional(f):
         body = f(*args, **kwargs)
         if type(body) is tuple:
             body, code = body
+        if isinstance(body, Response):
+            return body
         return htmx_wrap_layout(body), code
     return decorated_function
 
@@ -20,7 +22,6 @@ def htmx_required(f):
     def decorated_function(*args, **kwargs):
         if not request.headers.get('HX-Request'):
             return "HTMX request required", 400
-
         return f(*args, **kwargs)
     return decorated_function
 
@@ -32,9 +33,12 @@ def htmx_wrap_layout(content):
 
 
 def htmx_redirect(url):
-    resp = flask.Response("")
-    resp.headers['HX-Location'] = url
-    return resp
+    is_hx = request.headers.get('HX-Request')
+    if is_hx:
+        resp = flask.Response("")
+        resp.headers['HX-Location'] = url
+        return resp
+    return redirect(url)
 
 @app.after_request
 def add_toasts(response):
